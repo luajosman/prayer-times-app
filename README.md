@@ -1,76 +1,76 @@
-# 🧭 Prayer Compass
+# Prayer Compass 🧭
 
 A location-aware prayer companion built with **Flutter + FastAPI**.
 
 It gives you daily prayer times, a Qibla compass, and a world-map Qibla route in one app. The goal is simple: keep the UX clean while still exposing the details that matter for trust (`method`, `madhhab`, coordinates, timezone).
 
-## ✨ Why This Exists
+## Why This Exists
 
 Prayer apps usually optimize for one side only:
 
-- 🎨 Beautiful UI, weak transparency
-- 🧠 Accurate logic, rough UX
+- Great visuals, weak transparency
+- Strong logic, rough UX
 
 Prayer Compass aims to bridge both:
 
-- 🔍 Explicit calculation controls
-- 🗺️ Visible location + timezone context
-- 🛟 Resilient fallback behavior
-- 🧾 Clear error states instead of silent failures
+- Explicit calculation controls
+- Visible location and timezone context
+- Resilient fallback behavior
+- Clear error states instead of silent failures
 
-## 🚀 What You Get
+## What You Get
 
-- 📍 Live prayer times from your current location
-- 🧷 Manual coordinate mode with persisted settings
-- 🧮 Calculation method selector (`method` for AlAdhan)
-- 🕌 Madhhab selector (`Shafi` / `Hanafi`, affects Asr)
-- ⏳ Next-prayer highlighting and live countdown
-- 🧭 Qibla compass using device heading + computed bearing
-- 🌍 Qibla line map with geodesic route to the Kaaba
-- 🗺️ Open-in-Google-Maps with robust Android/web fallback
-- 🔌 Backend endpoints for prayer times, geocoding, and health
+- Live prayer times from your current location
+- Manual coordinate mode with persisted settings
+- Calculation method selector (`method` for AlAdhan)
+- Madhhab selector (`Shafi` / `Hanafi`, affects Asr)
+- Next-prayer highlighting and live countdown
+- Qibla compass using device heading + computed bearing
+- Qibla line map with geodesic route to the Kaaba
+- Open-in-Google-Maps with robust Android/web fallback
+- Backend endpoints for prayer times, geocoding, and health
 
-## 🛣️ Roadmap
+## Roadmap
 
 ```mermaid
 flowchart LR
-  A["🚧 Building Now"] --> B["⏭️ Coming Up Next"] --> C["🌌 Future Vision"]
+  A["Horizon 1: In Progress"] --> B["Horizon 2: Next Up"] --> C["Horizon 3: Future Ideas"]
 ```
 
-### 🚧 Building Now
+### 🚧 Horizon 1: In Progress
 
-- 🧪 Improve diagnostic UX for location/timezone mismatches
-- 🧭 Refine Qibla map readability on small devices
-- 🌐 Better fallback behavior when external maps cannot open
+- Improve diagnostic UX for location/timezone mismatches
+- Refine Qibla map readability on small devices
+- Improve fallback behavior when external maps cannot open
 
-### ⏭️ Coming Up Next
+### ⏭️ Horizon 2: Next Up
 
-- 🔔 Local prayer notifications with per-prayer toggles
-- 🗺️ Country/city presets for quicker setup
-- 🌍 Better localization polish (German/English flow consistency)
+- Local prayer notifications with per-prayer toggles
+- Country/city presets for quicker setup
+- Localization polish (German/English flow consistency)
 
-### 🌌 Future Vision
+### 🔭 Horizon 3: Future Ideas
 
-- 🧠 Smarter method recommendations by region
-- 🏙️ Nearby mosque discovery mode
-- 📶 Offline cache for last successful timetable
-- ⌚ Companion integration concepts (wearables/widgets)
+- Smarter method recommendations by region
+- Nearby mosque discovery mode
+- Offline cache for last successful timetable
+- Companion integration concepts (wearables/widgets)
 
-> Note: roadmap items are planned targets and can be reprioritized.
+> Roadmap items are planned targets and can be reprioritized.
 
-## ⚡ One-Minute Tour
+## One-Minute Tour
 
 When you press **Aktualisieren**, this is the request path:
 
-1. 📱 Frontend resolves coordinates (live GPS or manual saved values).
-2. 🖥️ Backend receives `/api/v1/prayer-times?lat=...&lon=...`.
-3. 🌐 Backend calls AlAdhan and normalizes the response.
-4. 🧩 Frontend renders times, countdown, location chip, and timezone chip.
-5. 🕋 Qibla widgets use the same active coordinates for bearing, route, and deep link.
+1. Frontend resolves coordinates (live GPS or manual saved values).
+2. Backend receives `/api/v1/prayer-times?lat=...&lon=...`.
+3. Backend calls AlAdhan and normalizes the response.
+4. Frontend renders times, countdown, location chip, and timezone chip.
+5. Qibla widgets use the same active coordinates for bearing, route, and deep link.
 
-## 🧰 Tech Stack
+## Tech Stack
 
-### 📱 Frontend
+### Frontend
 
 - Flutter (Material)
 - `ChangeNotifier` controller layer
@@ -82,7 +82,7 @@ When you press **Aktualisieren**, this is the request path:
 - `shared_preferences` for local settings
 - `url_launcher` for external maps
 
-### 🖥️ Backend
+### Backend
 
 - FastAPI
 - `httpx` upstream client
@@ -90,7 +90,7 @@ When you press **Aktualisieren**, this is the request path:
 - AlAdhan Timings API (`/v1/timings`)
 - Nominatim geocoding (`openstreetmap.org`)
 
-## 🧱 Architecture
+## Architecture
 
 ```mermaid
 flowchart LR
@@ -103,7 +103,7 @@ flowchart LR
   A --> G["Flutter Compass"]
 ```
 
-## 🗂️ Project Layout
+## Project Layout
 
 ```text
 prayer-times-app/
@@ -142,7 +142,7 @@ prayer-times-app/
     pubspec.yaml
 ```
 
-## 🌐 API Endpoints
+## API Endpoints
 
 Base URL (local): `http://127.0.0.1:8000`
 
@@ -209,7 +209,7 @@ curl "http://127.0.0.1:8000/api/v1/geocode?q=Berlin"
 }
 ```
 
-## 🕋 Qibla Implementation Notes
+## Qibla Implementation Notes
 
 Kaaba reference used by the app:
 
@@ -218,18 +218,18 @@ Kaaba reference used by the app:
 
 The app computes:
 
-- 🧭 **bearing** from user coordinates to Kaaba
-- 📏 **great-circle distance** (haversine)
-- 🧵 **geodesic path** (interpolated points for map polyline)
+- Bearing from user coordinates to Kaaba
+- Great-circle distance (haversine)
+- Geodesic path (interpolated points for map polyline)
 
 The map renderer splits route segments at dateline jumps so long-distance lines stay visually stable.
 
-## 📍 Location Behavior (Important)
+## Location Behavior
 
 The app supports two modes:
 
-- **Live location** (GPS / device services)
-- **Manual location** (saved coordinates + label)
+- Live location (GPS/device services)
+- Manual location (saved coordinates + label)
 
 There is also a mismatch repair guard:
 
@@ -239,27 +239,27 @@ There is also a mismatch repair guard:
 
 This prevents the "Berlin label but America/New_York timezone" inconsistency.
 
-## 🗺️ Google Maps Launch Behavior
+## Google Maps Launch Behavior
 
 On some devices/emulators, URL intents fail depending on package visibility or browser availability.
 
 Current behavior:
 
-- tries multiple launch modes (`platformDefault`, `externalApplication`, `inAppBrowserView`)
-- if all fail, copies the maps URL to clipboard
-- shows a snackbar explaining fallback
+- Tries multiple launch modes (`platformDefault`, `externalApplication`, `inAppBrowserView`)
+- If all fail, copies the maps URL to clipboard
+- Shows a snackbar explaining fallback
 
 Android manifest includes `queries` for `https` and `geo` schemes to improve Android 11+ compatibility.
 
-## ✅ Requirements
+## Requirements
 
 - Flutter SDK compatible with Dart `>=3.2.3 <4.0.0`
 - Python `3.9+`
 - Android emulator or physical device (recommended for location/compass tests)
 
-## 🧪 Local Setup
+## Local Setup
 
-### 1) 🖥️ Backend
+### 1) Backend
 
 ```bash
 cd backend
@@ -287,7 +287,7 @@ Open API docs:
 - `http://127.0.0.1:8000/docs`
 - `http://127.0.0.1:8000/openapi.json`
 
-### 2) 📱 Frontend
+### 2) Frontend
 
 ```bash
 cd frontend
@@ -312,7 +312,7 @@ Run on web (Chrome):
 flutter run -d chrome --dart-define=API_BASE_URL=http://127.0.0.1:8000
 ```
 
-## ⚙️ Runtime Config
+## Runtime Config
 
 `API_BASE_URL` is provided via `--dart-define`.
 
@@ -321,7 +321,7 @@ Defaults in app code:
 - Android: `http://10.0.2.2:8000`
 - Web/others: `http://127.0.0.1:8000`
 
-## 🛠️ Useful Dev Commands
+## Useful Dev Commands
 
 Frontend:
 
@@ -339,49 +339,49 @@ python3 -m py_compile backend/app/services/aladhan_client.py
 python3 -m py_compile backend/app/services/geocode_client.py
 ```
 
-## 🆘 Troubleshooting
+## Troubleshooting 🛠️
 
-### 🌎 Timezone shows `America/New_York` unexpectedly
+### Timezone shows `America/New_York` unexpectedly
 
 Usually means the request was sent with fallback coordinates (`40.7128,-74.0060`).
 
 Try this:
 
-- 📌 Switch to manual mode and set correct coordinates explicitly
-- 🏷️ Keep manual label (`Berlin`) and refresh to trigger geocode repair
-- 📜 Verify backend logs show expected `lat/lon`
+- Switch to manual mode and set correct coordinates explicitly
+- Keep manual label (`Berlin`) and refresh to trigger geocode repair
+- Verify backend logs show expected `lat/lon`
 
-### 🗺️ Google Maps does not open
+### Google Maps does not open
 
-- 🌐 Ensure emulator/device has a browser or maps handler
-- 🔁 Retry from Qibla card or Qibla map action
-- 📋 If still blocked, use the copied URL from clipboard fallback
+- Ensure emulator/device has a browser or maps handler
+- Retry from Qibla card or Qibla map action
+- If still blocked, use the copied URL from clipboard fallback
 
-### 📡 Backend unreachable from Android emulator
+### Backend unreachable from Android emulator
 
 Use `10.0.2.2`, not `localhost`.
 
-### 🚪 Port `8000` already in use
+### Port `8000` already in use
 
 ```bash
 lsof -nP -iTCP:8000 -sTCP:LISTEN
 kill <PID>
 ```
 
-### 🧭 Compass data unavailable
+### Compass data unavailable
 
-- 🤖 Emulators often have no reliable compass stream
-- 📱 Test on a physical device
-- ♾️ Move phone in a figure-8 pattern for sensor calibration
+- Emulators often have no reliable compass stream
+- Test on a physical device
+- Move phone in a figure-8 pattern for sensor calibration
 
-## 🔒 Notes for Production Hardening
+## Notes for Production Hardening
 
-- 🔐 Restrict CORS origin list
-- 🚦 Add API rate limiting and caching
-- 📊 Add structured logging + metrics
-- 🔁 Add retry/backoff policy for upstream failures
-- ✅ Add integration tests for endpoint contracts
+- Restrict CORS origin list
+- Add API rate limiting and caching
+- Add structured logging + metrics
+- Add retry/backoff policy for upstream failures
+- Add integration tests for endpoint contracts
 
-## 📜 License
+## License
 
 MIT. See `LICENSE`.
