@@ -2,7 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:frontend/src/ui/prayer_home_page.dart';
 
 class PrayerTimesApp extends StatelessWidget {
-  const PrayerTimesApp({super.key});
+  const PrayerTimesApp({
+    super.key,
+    this.autoLoad = true,
+  });
+
+  final bool autoLoad;
 
   @override
   Widget build(BuildContext context) {
@@ -73,7 +78,7 @@ class PrayerTimesApp extends StatelessWidget {
           labelStyle: TextStyle(color: Colors.white.withOpacity(0.78)),
         ),
       ),
-      home: const PrayerHomePage(),
+      home: PrayerHomePage(autoLoad: autoLoad),
     );
   }
 }

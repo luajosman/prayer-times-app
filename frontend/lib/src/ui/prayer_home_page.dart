@@ -3,11 +3,19 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:frontend/src/controllers/prayer_times_controller.dart';
 import 'package:frontend/src/core/prayer_constants.dart';
+import 'package:frontend/src/ui/widgets/qibla_compass_card.dart';
 import 'package:frontend/src/ui/widgets/prayer_time_tile.dart';
 import 'package:frontend/src/utils/prayer_time_utils.dart';
 
 class PrayerHomePage extends StatefulWidget {
-  const PrayerHomePage({super.key});
+  const PrayerHomePage({
+    super.key,
+    this.autoLoad = true,
+    this.controller,
+  });
+
+  final bool autoLoad;
+  final PrayerTimesController? controller;
 
   @override
   State<PrayerHomePage> createState() => _PrayerHomePageState();
@@ -15,17 +23,23 @@ class PrayerHomePage extends StatefulWidget {
 
 class _PrayerHomePageState extends State<PrayerHomePage> {
   late final PrayerTimesController _controller;
+  late final bool _ownsController;
 
   @override
   void initState() {
     super.initState();
-    _controller = PrayerTimesController();
-    unawaited(_controller.initialize());
+    _ownsController = widget.controller == null;
+    _controller = widget.controller ?? PrayerTimesController();
+    if (widget.autoLoad) {
+      unawaited(_controller.initialize());
+    }
   }
 
   @override
   void dispose() {
-    _controller.dispose();
+    if (_ownsController) {
+      _controller.dispose();
+    }
     super.dispose();
   }
 
@@ -100,6 +114,11 @@ class _PrayerHomePageState extends State<PrayerHomePage> {
                               _buildLoadingCard()
                             else
                               ..._buildPrayerTiles(context, next),
+                            const SizedBox(height: 14),
+                            _buildAnimatedSection(
+                              index: 12,
+                              child: _buildQiblaCard(),
+                            ),
                             const SizedBox(height: 18),
                             _buildAnimatedSection(
                               index: 20,
@@ -228,10 +247,12 @@ class _PrayerHomePageState extends State<PrayerHomePage> {
                           const SizedBox(height: 2),
                           Text(
                             'In ${formatCountdown(countdown)}',
-                            style:
-                                Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                      color: const Color(0xFFFFE7A9),
-                                    ),
+                            style: Theme.of(context)
+                                .textTheme
+                                .bodyMedium
+                                ?.copyWith(
+                                  color: const Color(0xFFFFE7A9),
+                                ),
                           ),
                         ],
                       ),
@@ -294,6 +315,7 @@ class _PrayerHomePageState extends State<PrayerHomePage> {
                 Expanded(
                   child: DropdownButtonFormField<int>(
                     value: _controller.settings.method,
+                    isExpanded: true,
                     decoration: const InputDecoration(
                       labelText: 'Berechnungsmethode',
                     ),
@@ -301,10 +323,25 @@ class _PrayerHomePageState extends State<PrayerHomePage> {
                         .map(
                           (int method) => DropdownMenuItem<int>(
                             value: method,
-                            child: Text('$method · ${methodLabels[method]}'),
+                            child: Text(
+                              '$method · ${methodLabels[method]}',
+                              overflow: TextOverflow.ellipsis,
+                              maxLines: 1,
+                            ),
                           ),
                         )
                         .toList(),
+                    selectedItemBuilder: (BuildContext context) {
+                      return _controller.availableMethods
+                          .map(
+                            (int method) => Text(
+                              '$method · ${methodLabels[method]}',
+                              overflow: TextOverflow.ellipsis,
+                              maxLines: 1,
+                            ),
+                          )
+                          .toList();
+                    },
                     onChanged: (int? value) {
                       if (value == null) {
                         return;
@@ -323,7 +360,8 @@ class _PrayerHomePageState extends State<PrayerHomePage> {
                 return ChoiceChip(
                   selected: _controller.settings.school == school,
                   label: Text(schoolLabels[school] ?? school.toString()),
-                  onSelected: (_) => unawaited(_controller.updateSchool(school)),
+                  onSelected: (_) =>
+                      unawaited(_controller.updateSchool(school)),
                 );
               }).toList(),
             ),
@@ -424,7 +462,21 @@ class _PrayerHomePageState extends State<PrayerHomePage> {
     );
   }
 
-  List<Widget> _buildPrayerTiles(BuildContext context, PrayerEvent? nextPrayer) {
+  Widget _buildQiblaCard() {
+    final double latitude =
+        _controller.response?.latitude ?? _controller.settings.manualLatitude;
+    final double longitude =
+        _controller.response?.longitude ?? _controller.settings.manualLongitude;
+
+    return QiblaCompassCard(
+      latitude: latitude,
+      longitude: longitude,
+      locationLabel: _controller.locationSummary,
+    );
+  }
+
+  List<Widget> _buildPrayerTiles(
+      BuildContext context, PrayerEvent? nextPrayer) {
     final List<Widget> items = <Widget>[];
 
     int index = 0;
@@ -530,14 +582,25 @@ class _PrayerHomePageState extends State<PrayerHomePage> {
   }
 
   Future<void> _openManualLocationSheet(BuildContext context) async {
+    final double seedLatitude =
+        _controller.response?.latitude ?? _controller.settings.manualLatitude;
+    final double seedLongitude =
+        _controller.response?.longitude ?? _controller.settings.manualLongitude;
+    final String liveLabel = _controller.locationSummary.trim();
+    final String seedLabel = _controller.settings.useDeviceLocation &&
+            liveLabel.isNotEmpty &&
+            liveLabel != 'Live-Standort'
+        ? liveLabel
+        : _controller.settings.manualLabel;
+
     final TextEditingController labelController = TextEditingController(
-      text: _controller.settings.manualLabel,
+      text: seedLabel,
     );
     final TextEditingController latController = TextEditingController(
-      text: _controller.settings.manualLatitude.toStringAsFixed(6),
+      text: seedLatitude.toStringAsFixed(6),
     );
     final TextEditingController lonController = TextEditingController(
-      text: _controller.settings.manualLongitude.toStringAsFixed(6),
+      text: seedLongitude.toStringAsFixed(6),
     );
 
     String? inlineError;
@@ -619,7 +682,8 @@ class _PrayerHomePageState extends State<PrayerHomePage> {
                     child: FilledButton(
                       onPressed: () async {
                         final double? latitude = _safeParse(latController.text);
-                        final double? longitude = _safeParse(lonController.text);
+                        final double? longitude =
+                            _safeParse(lonController.text);
 
                         if (latitude == null || longitude == null) {
                           setModalState(() {

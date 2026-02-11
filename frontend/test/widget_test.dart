@@ -15,10 +15,9 @@ void main() {
   });
 
   testWidgets('renders redesigned prayer app shell', (WidgetTester tester) async {
-    await tester.pumpWidget(const PrayerTimesApp());
+    await tester.pumpWidget(const PrayerTimesApp(autoLoad: false));
 
     expect(find.text('Prayer Compass'), findsOneWidget);
-    expect(find.text('Einstellungen'), findsOneWidget);
-    expect(find.textContaining('Gebetszeiten'), findsOneWidget);
+    expect(find.textContaining('Gebetszeiten ·'), findsOneWidget);
   });
 }

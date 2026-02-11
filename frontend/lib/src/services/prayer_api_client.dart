@@ -2,6 +2,18 @@ import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:frontend/src/models/prayer_times_response.dart';
 
+class GeocodeResult {
+  const GeocodeResult({
+    required this.label,
+    required this.latitude,
+    required this.longitude,
+  });
+
+  final String label;
+  final double latitude;
+  final double longitude;
+}
+
 class PrayerApiException implements Exception {
   PrayerApiException(this.message);
 
@@ -70,10 +82,9 @@ class PrayerApiClient {
 
       return PrayerTimesResponse.fromJson(body);
     } on DioException catch (error) {
-      final String serverMessage =
-          error.response?.data is Map<String, dynamic>
-              ? (error.response?.data['detail']?.toString() ?? '')
-              : '';
+      final String serverMessage = error.response?.data is Map<String, dynamic>
+          ? (error.response?.data['detail']?.toString() ?? '')
+          : '';
 
       if (error.type == DioExceptionType.connectionTimeout ||
           error.type == DioExceptionType.receiveTimeout ||
@@ -91,7 +102,54 @@ class PrayerApiClient {
     } on PrayerApiException {
       rethrow;
     } catch (_) {
-      throw PrayerApiException('Unbekannter Fehler beim Laden der Gebetszeiten.');
+      throw PrayerApiException(
+          'Unbekannter Fehler beim Laden der Gebetszeiten.');
+    }
+  }
+
+  Future<GeocodeResult> geocodeLocation(String query) async {
+    try {
+      final Response<dynamic> response = await _dio.get<dynamic>(
+        '/api/v1/geocode',
+        queryParameters: <String, dynamic>{
+          'q': query,
+        },
+      );
+
+      final dynamic body = response.data;
+      if (response.statusCode != 200 || body is! Map<String, dynamic>) {
+        throw PrayerApiException('Unerwartete Antwort beim Orts-Lookup.');
+      }
+
+      final Map<String, dynamic> location =
+          (body['location'] as Map<String, dynamic>? ?? <String, dynamic>{});
+      final double? latitude = (location['lat'] as num?)?.toDouble();
+      final double? longitude = (location['lon'] as num?)?.toDouble();
+
+      if (latitude == null || longitude == null) {
+        throw PrayerApiException(
+            'Orts-Lookup lieferte keine gültigen Koordinaten.');
+      }
+
+      return GeocodeResult(
+        label: (body['label'] ?? query).toString(),
+        latitude: latitude,
+        longitude: longitude,
+      );
+    } on DioException catch (error) {
+      final String serverMessage = error.response?.data is Map<String, dynamic>
+          ? (error.response?.data['detail']?.toString() ?? '')
+          : '';
+
+      throw PrayerApiException(
+        serverMessage.isNotEmpty
+            ? serverMessage
+            : 'Orts-Lookup fehlgeschlagen. Netzwerk/API prüfen.',
+      );
+    } on PrayerApiException {
+      rethrow;
+    } catch (_) {
+      throw PrayerApiException('Unbekannter Fehler beim Orts-Lookup.');
     }
   }
 }

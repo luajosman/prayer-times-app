@@ -41,6 +41,6 @@ class AppSettings {
     useDeviceLocation: true,
     manualLatitude: fallbackLatitude,
     manualLongitude: fallbackLongitude,
-    manualLabel: 'New York',
+    manualLabel: 'Manuelle Koordinaten',
   );
 }

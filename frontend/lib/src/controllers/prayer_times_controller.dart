@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 import 'package:frontend/src/core/prayer_constants.dart';
+import 'package:geocoding/geocoding.dart';
 import 'package:frontend/src/models/app_settings.dart';
 import 'package:frontend/src/models/prayer_times_response.dart';
 import 'package:frontend/src/services/location_service.dart';
@@ -30,6 +31,7 @@ class PrayerTimesController extends ChangeNotifier {
   bool _isInitialized = false;
   DateTime _now = DateTime.now();
   DateTime? _lastUpdatedAt;
+  String? _liveLocationLabel;
   Timer? _ticker;
 
   AppSettings get settings => _settings;
@@ -66,6 +68,12 @@ class PrayerTimesController extends ChangeNotifier {
 
   String get locationSummary {
     if (_settings.useDeviceLocation) {
+      if (_liveLocationLabel != null && _liveLocationLabel!.trim().isNotEmpty) {
+        return _liveLocationLabel!;
+      }
+      if (_response != null) {
+        return '${_response!.latitude.toStringAsFixed(4)}, ${_response!.longitude.toStringAsFixed(4)}';
+      }
       return 'Live-Standort';
     }
 
@@ -79,6 +87,7 @@ class PrayerTimesController extends ChangeNotifier {
   Future<void> initialize() async {
     _startTicker();
     _settings = await _settingsStore.load();
+    _settings = await _maybeRepairManualLocation(_settings);
     _isInitialized = true;
     notifyListeners();
     await refresh(showGlobalLoader: true);
@@ -106,6 +115,14 @@ class PrayerTimesController extends ChangeNotifier {
       );
 
       _response = loaded;
+      if (_settings.useDeviceLocation) {
+        _liveLocationLabel = await _resolveLocationLabel(
+          coordinates.latitude,
+          coordinates.longitude,
+        );
+      } else {
+        _liveLocationLabel = null;
+      }
       _visibleTimes = filterPrayerTimes(loaded.times);
       _errorMessage = null;
       _lastUpdatedAt = DateTime.now();
@@ -149,6 +166,9 @@ class PrayerTimesController extends ChangeNotifier {
     }
 
     _settings = _settings.copyWith(useDeviceLocation: useDeviceLocation);
+    if (!useDeviceLocation) {
+      _liveLocationLabel = null;
+    }
     await _settingsStore.save(_settings);
     notifyListeners();
     await refresh();
@@ -165,6 +185,7 @@ class PrayerTimesController extends ChangeNotifier {
       manualLongitude: longitude,
       manualLabel: label.trim().isEmpty ? 'Manuelle Koordinaten' : label.trim(),
     );
+    _liveLocationLabel = null;
 
     await _settingsStore.save(_settings);
     notifyListeners();
@@ -180,6 +201,7 @@ class PrayerTimesController extends ChangeNotifier {
 
   Future<_Coordinates> _resolveCoordinates() async {
     if (!_settings.useDeviceLocation) {
+      _settings = await _maybeRepairManualLocation(_settings);
       return _manualCoordinates();
     }
 
@@ -200,6 +222,51 @@ class PrayerTimesController extends ChangeNotifier {
     }
   }
 
+  Future<AppSettings> _maybeRepairManualLocation(AppSettings settings) async {
+    if (settings.useDeviceLocation) {
+      return settings;
+    }
+
+    if (!_isFallbackCoordinates(
+      settings.manualLatitude,
+      settings.manualLongitude,
+    )) {
+      return settings;
+    }
+
+    final String label = settings.manualLabel.trim();
+    if (label.isEmpty || _isGenericManualLabel(label)) {
+      return settings;
+    }
+
+    try {
+      final GeocodeResult resolved = await _apiClient.geocodeLocation(label);
+      final AppSettings updated = settings.copyWith(
+        manualLatitude: resolved.latitude,
+        manualLongitude: resolved.longitude,
+      );
+      await _settingsStore.save(updated);
+      return updated;
+    } on PrayerApiException {
+      return settings;
+    } catch (_) {
+      return settings;
+    }
+  }
+
+  bool _isFallbackCoordinates(double latitude, double longitude) {
+    const double epsilon = 0.0001;
+    return (latitude - fallbackLatitude).abs() <= epsilon &&
+        (longitude - fallbackLongitude).abs() <= epsilon;
+  }
+
+  bool _isGenericManualLabel(String label) {
+    final String normalized = label.trim().toLowerCase();
+    return normalized == 'manuelle koordinaten' ||
+        normalized == 'manual coordinates' ||
+        normalized == 'new york';
+  }
+
   void _startTicker() {
     _ticker?.cancel();
     _ticker = Timer.periodic(const Duration(seconds: 1), (_) {
@@ -212,6 +279,43 @@ class PrayerTimesController extends ChangeNotifier {
   void dispose() {
     _ticker?.cancel();
     super.dispose();
+  }
+
+  Future<String?> _resolveLocationLabel(
+      double latitude, double longitude) async {
+    try {
+      final List<Placemark> placemarks = await placemarkFromCoordinates(
+        latitude,
+        longitude,
+      );
+      if (placemarks.isEmpty) {
+        return null;
+      }
+
+      final Placemark place = placemarks.first;
+      final String? city = _firstNonEmpty(<String?>[
+        place.locality,
+        place.subAdministrativeArea,
+        place.administrativeArea,
+      ]);
+      final String? country = _firstNonEmpty(<String?>[place.country]);
+
+      if (city != null && country != null) {
+        return '$city, $country';
+      }
+      return city ?? country;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  String? _firstNonEmpty(List<String?> candidates) {
+    for (final String? candidate in candidates) {
+      if (candidate != null && candidate.trim().isNotEmpty) {
+        return candidate.trim();
+      }
+    }
+    return null;
   }
 }
 
