@@ -1,4 +1,4 @@
-# Prayer Compass 🧭
+# Salah Navigator 🧭
 
 A location-aware prayer companion built with **Flutter + FastAPI**.
 
@@ -11,7 +11,7 @@ Prayer apps usually optimize for one side only:
 - Great visuals, weak transparency
 - Strong logic, rough UX
 
-Prayer Compass aims to bridge both:
+Salah Navigator aims to bridge both:
 
 - Explicit calculation controls
 - Visible location and timezone context
@@ -28,7 +28,6 @@ Prayer Compass aims to bridge both:
 - Qibla compass using device heading + computed bearing
 - Qibla line map with geodesic route to the Kaaba
 - Open-in-Google-Maps with robust Android/web fallback
-- Backend endpoints for prayer times, geocoding, and health
 
 ## Roadmap
 
@@ -57,16 +56,6 @@ flowchart LR
 - Companion integration concepts (wearables/widgets)
 
 > Roadmap items are planned targets and can be reprioritized.
-
-## One-Minute Tour
-
-When you press **Aktualisieren**, this is the request path:
-
-1. Frontend resolves coordinates (live GPS or manual saved values).
-2. Backend receives `/api/v1/prayer-times?lat=...&lon=...`.
-3. Backend calls AlAdhan and normalizes the response.
-4. Frontend renders times, countdown, location chip, and timezone chip.
-5. Qibla widgets use the same active coordinates for bearing, route, and deep link.
 
 ## Tech Stack
 
@@ -209,47 +198,28 @@ curl "http://127.0.0.1:8000/api/v1/geocode?q=Berlin"
 }
 ```
 
-## Qibla Implementation Notes
+## Implementation Notes
 
-Kaaba reference used by the app:
+### Qibla
 
-- latitude: `21.422487`
-- longitude: `39.826206`
+- Kaaba reference: `21.422487, 39.826206`
+- The app computes bearing, haversine distance, and a geodesic route polyline.
+- The route renderer splits at dateline jumps so long-distance lines stay visually stable.
 
-The app computes:
+### Location and Timezone
 
-- Bearing from user coordinates to Kaaba
-- Great-circle distance (haversine)
-- Geodesic path (interpolated points for map polyline)
+- Supports live location (GPS/device services) and manual location (saved coordinates + label).
+- Includes a mismatch repair guard:
+  - if a city-like manual label exists (for example `Berlin`)
+  - but coordinates are still fallback defaults
+  - app resolves coordinates through `/api/v1/geocode`
+- This prevents the "Berlin label but America/New_York timezone" inconsistency.
 
-The map renderer splits route segments at dateline jumps so long-distance lines stay visually stable.
+### External Maps
 
-## Location Behavior
-
-The app supports two modes:
-
-- Live location (GPS/device services)
-- Manual location (saved coordinates + label)
-
-There is also a mismatch repair guard:
-
-- If manual label is city-like (for example `Berlin`)
-- But saved coordinates are still fallback defaults
-- App calls `/api/v1/geocode` and updates manual coordinates automatically
-
-This prevents the "Berlin label but America/New_York timezone" inconsistency.
-
-## Google Maps Launch Behavior
-
-On some devices/emulators, URL intents fail depending on package visibility or browser availability.
-
-Current behavior:
-
-- Tries multiple launch modes (`platformDefault`, `externalApplication`, `inAppBrowserView`)
-- If all fail, copies the maps URL to clipboard
-- Shows a snackbar explaining fallback
-
-Android manifest includes `queries` for `https` and `geo` schemes to improve Android 11+ compatibility.
+- Tries multiple launch modes (`platformDefault`, `externalApplication`, `inAppBrowserView`).
+- If all fail, app copies the maps URL to clipboard and shows a snackbar fallback.
+- Android manifest includes `queries` for `https` and `geo` schemes (Android 11+ intent visibility).
 
 ## Requirements
 
