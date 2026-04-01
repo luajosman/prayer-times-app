@@ -43,6 +43,10 @@
 	</array>
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>Diese App benötigt deinen Standort, um lokale Gebetszeiten zu berechnen.</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>Diese App nutzt deinen Standort, um genaue Gebetszeiten anzuzeigen.</string>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
 </dict>
