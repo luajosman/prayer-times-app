@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_map/flutter_map.dart';
+import 'package:frontend/src/core/design_tokens.dart';
 import 'package:frontend/src/utils/qibla_utils.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -27,68 +28,84 @@ class QiblaMapPage extends StatelessWidget {
     );
 
     final List<LatLng> polylinePoints = path
-        .map((GeoCoordinate point) => LatLng(point.latitude, point.longitude))
+        .map((GeoCoordinate p) => LatLng(p.latitude, p.longitude))
         .toList(growable: false);
-    final List<Polyline> routePolylines = _buildRoutePolylines(polylinePoints);
 
     final LatLng userPoint = LatLng(latitude, longitude);
-    final LatLng kaabaPoint = const LatLng(kaabaLatitude, kaabaLongitude);
-    final _GeoBounds bounds = _computeBounds(<LatLng>[userPoint, kaabaPoint]);
-    final double distanceKm = distanceToKaabaKm(
-      latitude: latitude,
-      longitude: longitude,
-    );
+    const LatLng kaabaPoint = LatLng(kaabaLatitude, kaabaLongitude);
+    final _GeoBounds bounds =
+        _computeBounds(<LatLng>[userPoint, kaabaPoint]);
+
+    final double distanceKm =
+        distanceToKaabaKm(latitude: latitude, longitude: longitude);
 
     return Scaffold(
+      backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: const Text('Qibla Linienansicht'),
-        actions: <Widget>[
-          IconButton(
-            tooltip: 'In Google Maps öffnen',
-            onPressed: () => _openInGoogleMaps(context),
-            icon: const Icon(Icons.open_in_new_rounded),
-          ),
-        ],
+        title: const Text('Qibla · Luftlinie'),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_rounded),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+      ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () => _openInGoogleMaps(context),
+        icon: const Icon(Icons.open_in_new_rounded, size: 18),
+        label: const Text('In Google Maps öffnen'),
+        backgroundColor: AppColors.primary,
+        foregroundColor: AppColors.textPrimary,
       ),
       body: Column(
         children: <Widget>[
-          Container(
-            width: double.infinity,
-            margin: const EdgeInsets.fromLTRB(16, 12, 16, 10),
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(14),
-              color: Colors.white.withOpacity(0.06),
-              border: Border.all(color: Colors.white.withOpacity(0.12)),
-            ),
-            child: Wrap(
-              spacing: 10,
-              runSpacing: 10,
-              children: <Widget>[
-                _MiniInfo(
-                  icon: Icons.place_rounded,
-                  label: 'Start',
-                  value:
-                      '$locationLabel · ${latitude.toStringAsFixed(4)}, ${longitude.toStringAsFixed(4)}',
-                ),
-                _MiniInfo(
-                  icon: Icons.mosque_rounded,
-                  label: 'Ziel',
-                  value: 'Kaaba, Makkah',
-                ),
-                _MiniInfo(
-                  icon: Icons.route_rounded,
-                  label: 'Luftlinie',
-                  value: '${distanceKm.toStringAsFixed(1)} km',
-                ),
-              ],
+          // Info card
+          Padding(
+            padding:
+                const EdgeInsets.fromLTRB(16, 12, 16, 0),
+            child: Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(
+                  horizontal: 14, vertical: 12),
+              decoration: BoxDecoration(
+                color: AppColors.surface,
+                borderRadius:
+                    BorderRadius.circular(AppRadius.lg),
+                border: Border.all(color: AppColors.border),
+              ),
+              child: Wrap(
+                spacing: 16,
+                runSpacing: 8,
+                children: <Widget>[
+                  _MapInfoItem(
+                    icon: Icons.my_location_rounded,
+                    label: 'Start',
+                    value: locationLabel,
+                  ),
+                  const _MapInfoItem(
+                    icon: Icons.mosque_rounded,
+                    label: 'Ziel',
+                    value: 'Kaaba, Makkah',
+                    color: AppColors.gold,
+                  ),
+                  _MapInfoItem(
+                    icon: Icons.route_rounded,
+                    label: 'Entfernung',
+                    value:
+                        '${distanceKm.toStringAsFixed(0)} km',
+                  ),
+                ],
+              ),
             ),
           ),
+          const SizedBox(height: 12),
+
+          // Map
           Expanded(
             child: Padding(
-              padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+              padding:
+                  const EdgeInsets.fromLTRB(16, 0, 16, 16),
               child: ClipRRect(
-                borderRadius: BorderRadius.circular(18),
+                borderRadius:
+                    BorderRadius.circular(AppRadius.xl),
                 child: FlutterMap(
                   options: MapOptions(
                     initialCenter: _initialCenter(bounds),
@@ -98,35 +115,34 @@ class QiblaMapPage extends StatelessWidget {
                     TileLayer(
                       urlTemplate:
                           'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                      userAgentPackageName: 'com.example.frontend',
+                      userAgentPackageName:
+                          'com.example.frontend',
                     ),
                     PolylineLayer(
-                      polylines: routePolylines,
+                      polylines:
+                          _buildRoutePolylines(polylinePoints),
                     ),
                     MarkerLayer(
                       markers: <Marker>[
                         Marker(
-                          width: 30,
-                          height: 30,
+                          width: 32,
+                          height: 32,
                           point: userPoint,
-                          child: const _MapPointMarker(
-                            icon: Icons.my_location_rounded,
-                          ),
+                          child:
+                              const _MapMarker(isDestination: false),
                         ),
-                        Marker(
-                          width: 30,
-                          height: 30,
+                        const Marker(
+                          width: 32,
+                          height: 32,
                           point: kaabaPoint,
-                          child: const _MapPointMarker(
-                            icon: Icons.mosque_rounded,
-                            isDestination: true,
-                          ),
+                          child: _MapMarker(isDestination: true),
                         ),
                       ],
                     ),
                     const RichAttributionWidget(
                       attributions: <SourceAttribution>[
-                        TextSourceAttribution('OpenStreetMap contributors'),
+                        TextSourceAttribution(
+                            'OpenStreetMap contributors'),
                       ],
                     ),
                   ],
@@ -140,38 +156,32 @@ class QiblaMapPage extends StatelessWidget {
   }
 
   List<Polyline> _buildRoutePolylines(List<LatLng> points) {
-    final List<List<LatLng>> segments = _splitAtDateline(points);
-    return segments
-        .where((List<LatLng> segment) => segment.length >= 2)
+    return _splitAtDateline(points)
+        .where((List<LatLng> seg) => seg.length >= 2)
         .map(
-          (List<LatLng> segment) => Polyline(
-            points: segment,
-            strokeWidth: 4,
-            color: const Color(0xFF64E0D6),
+          (List<LatLng> seg) => Polyline(
+            points: seg,
+            strokeWidth: 3,
+            color: AppColors.primaryLight.withValues(alpha: 0.85),
           ),
         )
         .toList(growable: false);
   }
 
   List<List<LatLng>> _splitAtDateline(List<LatLng> points) {
-    if (points.length < 2) {
-      return <List<LatLng>>[points];
-    }
+    if (points.length < 2) return <List<LatLng>>[points];
 
     final List<List<LatLng>> segments = <List<LatLng>>[
       <LatLng>[points.first],
     ];
 
     for (int i = 1; i < points.length; i++) {
-      final LatLng previous = points[i - 1];
-      final LatLng current = points[i];
-      final bool jumpsDateline =
-          (previous.longitude - current.longitude).abs() > 180;
-
-      if (jumpsDateline) {
-        segments.add(<LatLng>[current]);
+      final bool jumps =
+          (points[i - 1].longitude - points[i].longitude).abs() > 180;
+      if (jumps) {
+        segments.add(<LatLng>[points[i]]);
       } else {
-        segments.last.add(current);
+        segments.last.add(points[i]);
       }
     }
 
@@ -179,159 +189,144 @@ class QiblaMapPage extends StatelessWidget {
   }
 
   _GeoBounds _computeBounds(List<LatLng> points) {
-    final double minLat =
-        points.map((LatLng point) => point.latitude).reduce(math.min);
-    final double maxLat =
-        points.map((LatLng point) => point.latitude).reduce(math.max);
-    final double minLon =
-        points.map((LatLng point) => point.longitude).reduce(math.min);
-    final double maxLon =
-        points.map((LatLng point) => point.longitude).reduce(math.max);
-
     return _GeoBounds(
-      minLatitude: minLat,
-      maxLatitude: maxLat,
-      minLongitude: minLon,
-      maxLongitude: maxLon,
+      minLatitude:
+          points.map((LatLng p) => p.latitude).reduce(math.min),
+      maxLatitude:
+          points.map((LatLng p) => p.latitude).reduce(math.max),
+      minLongitude:
+          points.map((LatLng p) => p.longitude).reduce(math.min),
+      maxLongitude:
+          points.map((LatLng p) => p.longitude).reduce(math.max),
     );
   }
 
-  LatLng _initialCenter(_GeoBounds bounds) {
+  LatLng _initialCenter(_GeoBounds b) {
     return LatLng(
-      (bounds.minLatitude + bounds.maxLatitude) / 2,
-      _midLongitude(bounds.minLongitude, bounds.maxLongitude),
+      (b.minLatitude + b.maxLatitude) / 2,
+      _midLongitude(b.minLongitude, b.maxLongitude),
     );
   }
 
-  double _midLongitude(double minLongitude, double maxLongitude) {
-    if ((maxLongitude - minLongitude).abs() <= 180) {
-      return (minLongitude + maxLongitude) / 2;
-    }
-
-    final double wrappedMin =
-        minLongitude < 0 ? minLongitude + 360 : minLongitude;
-    final double wrappedMax =
-        maxLongitude < 0 ? maxLongitude + 360 : maxLongitude;
-    final double wrappedMid = (wrappedMin + wrappedMax) / 2;
-    return wrappedMid > 180 ? wrappedMid - 360 : wrappedMid;
+  double _midLongitude(double min, double max) {
+    if ((max - min).abs() <= 180) return (min + max) / 2;
+    final double wMin = min < 0 ? min + 360 : min;
+    final double wMax = max < 0 ? max + 360 : max;
+    final double mid = (wMin + wMax) / 2;
+    return mid > 180 ? mid - 360 : mid;
   }
 
-  double _initialZoom(_GeoBounds bounds) {
-    final double latDelta = (bounds.maxLatitude - bounds.minLatitude).abs();
-    double lonDelta = (bounds.maxLongitude - bounds.minLongitude).abs();
-    if (lonDelta > 180) {
-      lonDelta = 360 - lonDelta;
-    }
-    final double maxDelta = latDelta > lonDelta ? latDelta : lonDelta;
+  double _initialZoom(_GeoBounds b) {
+    final double latD = (b.maxLatitude - b.minLatitude).abs();
+    double lonD = (b.maxLongitude - b.minLongitude).abs();
+    if (lonD > 180) lonD = 360 - lonD;
+    final double d = latD > lonD ? latD : lonD;
 
-    if (maxDelta > 140) {
-      return 1.4;
-    }
-    if (maxDelta > 100) {
-      return 1.9;
-    }
-    if (maxDelta > 60) {
-      return 2.4;
-    }
-    if (maxDelta > 25) {
-      return 3.2;
-    }
-    if (maxDelta > 10) {
-      return 4.0;
-    }
+    if (d > 140) return 1.4;
+    if (d > 100) return 1.9;
+    if (d > 60) return 2.4;
+    if (d > 25) return 3.2;
+    if (d > 10) return 4.0;
     return 5.2;
   }
 
   Future<void> _openInGoogleMaps(BuildContext context) async {
     final Uri mapsUri = Uri.parse(
-      'https://www.google.com/maps/dir/?api=1&origin=$latitude,$longitude&destination=$kaabaLatitude,$kaabaLongitude&travelmode=walking',
+      'https://www.google.com/maps/dir/?api=1'
+      '&origin=$latitude,$longitude'
+      '&destination=$kaabaLatitude,$kaabaLongitude'
+      '&travelmode=walking',
     );
 
-    final List<LaunchMode> modes = <LaunchMode>[
+    for (final LaunchMode mode in <LaunchMode>[
       LaunchMode.platformDefault,
       LaunchMode.externalApplication,
       LaunchMode.inAppBrowserView,
-    ];
-
-    for (final LaunchMode mode in modes) {
+    ]) {
       try {
-        final bool opened = await launchUrl(mapsUri, mode: mode);
-        if (opened) {
-          return;
-        }
-      } catch (_) {
-        // Try next launch mode before reporting failure.
-      }
+        if (await launchUrl(mapsUri, mode: mode)) return;
+      } catch (_) {}
     }
 
     await Clipboard.setData(ClipboardData(text: mapsUri.toString()));
-
-    if (!context.mounted) {
-      return;
-    }
-
+    if (!context.mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
-        content:
-            Text('Google Maps konnte nicht geöffnet werden. Link kopiert.'),
+        content: Text(
+            'Google Maps konnte nicht geöffnet werden. Link kopiert.'),
       ),
     );
   }
 }
 
-class _MiniInfo extends StatelessWidget {
-  const _MiniInfo({
+// ── Map info item ─────────────────────────────────────────────────────────────
+
+class _MapInfoItem extends StatelessWidget {
+  const _MapInfoItem({
     required this.icon,
     required this.label,
     required this.value,
+    this.color = AppColors.primaryLight,
   });
 
   final IconData icon;
   final String label;
   final String value;
+  final Color color;
 
   @override
   Widget build(BuildContext context) {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: <Widget>[
-        Icon(icon, size: 16, color: const Color(0xFF64E0D6)),
+        Icon(icon, size: 14, color: color),
         const SizedBox(width: 6),
-        Text(
-          '$label: $value',
-          style: Theme.of(context).textTheme.bodyMedium,
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: <Widget>[
+            Text(
+              label.toUpperCase(),
+              style: Theme.of(context).textTheme.labelSmall,
+            ),
+            Text(
+              value,
+              style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                    color: AppColors.textPrimary,
+                  ),
+            ),
+          ],
         ),
       ],
     );
   }
 }
 
-class _MapPointMarker extends StatelessWidget {
-  const _MapPointMarker({
-    required this.icon,
-    this.isDestination = false,
-  });
+// ── Map marker ────────────────────────────────────────────────────────────────
 
-  final IconData icon;
+class _MapMarker extends StatelessWidget {
+  const _MapMarker({required this.isDestination});
+
   final bool isDestination;
 
   @override
   Widget build(BuildContext context) {
+    final Color bg = isDestination
+        ? AppColors.gold.withValues(alpha: 0.92)
+        : AppColors.surface.withValues(alpha: 0.95);
+    final Color fg =
+        isDestination ? const Color(0xFF2A1F08) : AppColors.primaryLight;
+    final Color border = isDestination
+        ? AppColors.goldLight
+        : AppColors.border;
+
     return Container(
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        color: isDestination
-            ? const Color(0xFFFFD166).withOpacity(0.95)
-            : const Color(0xFF1D2637).withOpacity(0.95),
-        border: Border.all(
-          color: isDestination
-              ? const Color(0xFFFFD166)
-              : Colors.white.withOpacity(0.3),
-          width: 2,
-        ),
+        color: bg,
+        border: Border.all(color: border, width: 2),
         boxShadow: <BoxShadow>[
           BoxShadow(
-            color: Colors.black.withOpacity(0.2),
+            color: Colors.black.withValues(alpha: 0.25),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -339,13 +334,17 @@ class _MapPointMarker extends StatelessWidget {
       ),
       alignment: Alignment.center,
       child: Icon(
-        icon,
+        isDestination
+            ? Icons.mosque_rounded
+            : Icons.my_location_rounded,
         size: 14,
-        color: isDestination ? const Color(0xFF2E3A52) : Colors.white,
+        color: fg,
       ),
     );
   }
 }
+
+// ── Geo bounds ────────────────────────────────────────────────────────────────
 
 class _GeoBounds {
   const _GeoBounds({

@@ -45,7 +45,18 @@ async def get_prayer_times(lat: float, lon: float, method: int = 2, school: int 
                 detail=f"Upstream bad payload: {str(data)[:200]}",
             )
 
-        return data
+        aladhan = data["data"]
+        meta = aladhan["meta"]
+        school_str = meta.get("school", "STANDARD").upper()
+
+        return {
+            "date": aladhan["date"]["readable"],
+            "timezone": meta.get("timezone"),
+            "location": {"lat": lat, "lon": lon},
+            "method": meta["method"]["id"],
+            "school": 1 if school_str == "HANAFI" else 0,
+            "times": aladhan["timings"],
+        }
 
     except httpx.TimeoutException:
         raise HTTPException(status_code=504, detail="Upstream timeout (AlAdhan)")

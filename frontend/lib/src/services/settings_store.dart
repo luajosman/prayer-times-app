@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 class SettingsStore {
   static const String _methodKey = 'settings.method';
   static const String _schoolKey = 'settings.school';
+  static const String _useAutoMethodKey = 'settings.useAutoMethod';
   static const String _useDeviceLocationKey = 'settings.useDeviceLocation';
   static const String _manualLatitudeKey = 'settings.manualLatitude';
   static const String _manualLongitudeKey = 'settings.manualLongitude';
@@ -15,9 +16,13 @@ class SettingsStore {
 
     final int method = prefs.getInt(_methodKey) ?? AppSettings.defaults.method;
     final int school = prefs.getInt(_schoolKey) ?? AppSettings.defaults.school;
-    final bool useDeviceLocation =
-        prefs.getBool(_useDeviceLocationKey) ??
-            AppSettings.defaults.useDeviceLocation;
+    final bool hasStoredMethod = prefs.containsKey(_methodKey);
+    final bool useAutoMethod = prefs.containsKey(_useAutoMethodKey)
+        ? (prefs.getBool(_useAutoMethodKey) ??
+            AppSettings.defaults.useAutoMethod)
+        : (!hasStoredMethod || method == AppSettings.defaults.method);
+    final bool useDeviceLocation = prefs.getBool(_useDeviceLocationKey) ??
+        AppSettings.defaults.useDeviceLocation;
 
     final double manualLatitude =
         prefs.getDouble(_manualLatitudeKey) ?? fallbackLatitude;
@@ -27,8 +32,13 @@ class SettingsStore {
         prefs.getString(_manualLabelKey) ?? AppSettings.defaults.manualLabel;
 
     return AppSettings(
-      method: methodLabels.containsKey(method) ? method : AppSettings.defaults.method,
-      school: schoolLabels.containsKey(school) ? school : AppSettings.defaults.school,
+      method: methodLabels.containsKey(method)
+          ? method
+          : AppSettings.defaults.method,
+      school: schoolLabels.containsKey(school)
+          ? school
+          : AppSettings.defaults.school,
+      useAutoMethod: useAutoMethod,
       useDeviceLocation: useDeviceLocation,
       manualLatitude: manualLatitude,
       manualLongitude: manualLongitude,
@@ -40,6 +50,7 @@ class SettingsStore {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     await prefs.setInt(_methodKey, settings.method);
     await prefs.setInt(_schoolKey, settings.school);
+    await prefs.setBool(_useAutoMethodKey, settings.useAutoMethod);
     await prefs.setBool(_useDeviceLocationKey, settings.useDeviceLocation);
     await prefs.setDouble(_manualLatitudeKey, settings.manualLatitude);
     await prefs.setDouble(_manualLongitudeKey, settings.manualLongitude);

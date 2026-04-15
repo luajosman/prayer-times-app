@@ -4,6 +4,7 @@ class AppSettings {
   const AppSettings({
     required this.method,
     required this.school,
+    required this.useAutoMethod,
     required this.useDeviceLocation,
     required this.manualLatitude,
     required this.manualLongitude,
@@ -12,6 +13,7 @@ class AppSettings {
 
   final int method;
   final int school;
+  final bool useAutoMethod;
   final bool useDeviceLocation;
   final double manualLatitude;
   final double manualLongitude;
@@ -20,6 +22,7 @@ class AppSettings {
   AppSettings copyWith({
     int? method,
     int? school,
+    bool? useAutoMethod,
     bool? useDeviceLocation,
     double? manualLatitude,
     double? manualLongitude,
@@ -28,6 +31,7 @@ class AppSettings {
     return AppSettings(
       method: method ?? this.method,
       school: school ?? this.school,
+      useAutoMethod: useAutoMethod ?? this.useAutoMethod,
       useDeviceLocation: useDeviceLocation ?? this.useDeviceLocation,
       manualLatitude: manualLatitude ?? this.manualLatitude,
       manualLongitude: manualLongitude ?? this.manualLongitude,
@@ -38,6 +42,7 @@ class AppSettings {
   static const AppSettings defaults = AppSettings(
     method: 2,
     school: 0,
+    useAutoMethod: true,
     useDeviceLocation: true,
     manualLatitude: fallbackLatitude,
     manualLongitude: fallbackLongitude,
