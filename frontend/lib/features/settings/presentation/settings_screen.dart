@@ -1,8 +1,9 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import '../data/settings_service.dart';
 
 class SettingsScreen extends StatefulWidget {
-  const SettingsScreen({super.key, required this.initial, required this.onSaved});
+  const SettingsScreen(
+      {super.key, required this.initial, required this.onSaved});
 
   final AppSettings initial;
   final ValueChanged<AppSettings> onSaved;
@@ -33,10 +34,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
         child: Column(
           children: [
             DropdownButtonFormField<int>(
-              value: method,
-              decoration: const InputDecoration(labelText: 'Calculation method'),
+              key: ValueKey<int>(method),
+              initialValue: method,
+              decoration:
+                  const InputDecoration(labelText: 'Calculation method'),
               items: methods
-                  .map((m) => DropdownMenuItem(value: m, child: Text('Method $m')))
+                  .map((m) =>
+                      DropdownMenuItem(value: m, child: Text('Method $m')))
                   .toList(),
               onChanged: (v) => setState(() => method = v ?? method),
             ),

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_compass/flutter_compass.dart';
 import 'package:frontend/src/core/design_tokens.dart';
+import 'package:frontend/src/core/prayer_phase_style.dart';
 import 'package:frontend/src/ui/qibla_map_page.dart';
 import 'package:frontend/src/utils/qibla_utils.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -14,11 +15,13 @@ class QiblaCompassCard extends StatelessWidget {
     required this.latitude,
     required this.longitude,
     required this.locationLabel,
+    required this.phaseStyle,
   });
 
   final double latitude;
   final double longitude;
   final String locationLabel;
+  final PrayerPhaseStyle phaseStyle;
 
   @override
   Widget build(BuildContext context) {
@@ -28,96 +31,87 @@ class QiblaCompassCard extends StatelessWidget {
     );
 
     return Container(
-      padding: const EdgeInsets.all(AppSpacing.md),
+      padding: const EdgeInsets.all(AppSpacing.xl),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: AppColors.surfaceRaised,
         borderRadius: BorderRadius.circular(AppRadius.xl),
         border: Border.all(color: AppColors.border),
+        boxShadow: AppShadows.panel,
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: Stack(
         children: <Widget>[
-          // Header row
-          Row(
-            children: <Widget>[
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: <Widget>[
-                    Text(
-                      'Qibla',
-                      style: Theme.of(context).textTheme.titleLarge,
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      locationLabel,
-                      style: Theme.of(context).textTheme.bodySmall,
-                    ),
-                  ],
-                ),
+          Positioned(
+            top: -18,
+            right: -8,
+            child: _AmbientOrb(
+              color: AppColors.overlay(
+                phaseStyle.qiblaAmbient,
+                AppColors.gold,
+                0.18,
               ),
-              // Bearing badge
-              Container(
-                padding: const EdgeInsets.symmetric(
-                    horizontal: 10, vertical: 5),
-                decoration: BoxDecoration(
-                  color: AppColors.gold.withValues(alpha: 0.12),
-                  borderRadius:
-                      BorderRadius.circular(AppRadius.full),
-                  border: Border.all(
-                      color: AppColors.gold.withValues(alpha: 0.3)),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: <Widget>[
-                    const Icon(
-                      Icons.navigation_rounded,
-                      size: 11,
-                      color: AppColors.gold,
-                    ),
-                    const SizedBox(width: 4),
-                    Text(
-                      '${qiblaBearing.toStringAsFixed(0)}°',
-                      style: Theme.of(context)
-                          .textTheme
-                          .labelMedium
-                          ?.copyWith(color: AppColors.goldLight),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 20),
-
-          // Compass
-          Center(
-            child: _CompassBody(
-              qiblaBearing: qiblaBearing,
-              latitude: latitude,
-              longitude: longitude,
-              locationLabel: locationLabel,
+              size: 118,
             ),
           ),
-          const SizedBox(height: 18),
-
-          // Action buttons
-          Row(
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
-              Expanded(
-                child: OutlinedButton.icon(
-                  onPressed: () => _openMapView(context),
-                  icon: const Icon(Icons.alt_route_rounded, size: 16),
-                  label: const Text('Luftlinie'),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: <Widget>[
+                        Text(
+                          'Qibla',
+                          style: Theme.of(context).textTheme.headlineSmall,
+                        ),
+                        const SizedBox(height: AppSpacing.xs),
+                        Text(
+                          locationLabel,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style:
+                              Theme.of(context).textTheme.bodySmall?.copyWith(
+                                    color: AppColors.textSecondary,
+                                  ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: AppSpacing.md),
+                  _BearingBadge(bearing: qiblaBearing),
+                ],
+              ),
+              const SizedBox(height: AppSpacing.xxl),
+              Center(
+                child: _CompassBody(
+                  qiblaBearing: qiblaBearing,
+                  latitude: latitude,
+                  longitude: longitude,
+                  locationLabel: locationLabel,
+                  phaseStyle: phaseStyle,
                 ),
               ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: FilledButton.icon(
-                  onPressed: () => _openInGoogleMaps(context),
-                  icon: const Icon(Icons.open_in_new_rounded, size: 16),
-                  label: const Text('Google Maps'),
-                ),
+              const SizedBox(height: AppSpacing.xl),
+              Row(
+                children: <Widget>[
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      onPressed: () => _openMapView(context),
+                      icon: const Icon(Icons.alt_route_rounded, size: 16),
+                      label: const Text('Luftlinie'),
+                    ),
+                  ),
+                  const SizedBox(width: AppSpacing.md),
+                  Expanded(
+                    child: FilledButton.icon(
+                      onPressed: () => _openInGoogleMaps(context),
+                      icon: const Icon(Icons.open_in_new_rounded, size: 16),
+                      label: const Text('Google Maps'),
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
@@ -133,6 +127,7 @@ class QiblaCompassCard extends StatelessWidget {
           latitude: latitude,
           longitude: longitude,
           locationLabel: locationLabel,
+          phaseStyle: phaseStyle,
         ),
       ),
     );
@@ -152,22 +147,63 @@ class QiblaCompassCard extends StatelessWidget {
       LaunchMode.inAppBrowserView,
     ]) {
       try {
-        if (await launchUrl(mapsUri, mode: mode)) return;
+        if (await launchUrl(mapsUri, mode: mode)) {
+          return;
+        }
       } catch (_) {}
     }
 
     await Clipboard.setData(ClipboardData(text: mapsUri.toString()));
-    if (!context.mounted) return;
+    if (!context.mounted) {
+      return;
+    }
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
         content: Text(
-            'Google Maps konnte nicht geöffnet werden. Link kopiert.'),
+          'Google Maps konnte nicht geöffnet werden. Link kopiert.',
+        ),
       ),
     );
   }
 }
 
-// ── Compass body ──────────────────────────────────────────────────────────────
+class _BearingBadge extends StatelessWidget {
+  const _BearingBadge({required this.bearing});
+
+  final double bearing;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.lg,
+        vertical: AppSpacing.md,
+      ),
+      decoration: BoxDecoration(
+        color: AppColors.goldTint,
+        borderRadius: BorderRadius.circular(AppRadius.full),
+        border: Border.all(color: AppColors.goldSoft),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: <Widget>[
+          const Icon(
+            Icons.navigation_rounded,
+            size: 14,
+            color: AppColors.gold,
+          ),
+          const SizedBox(width: AppSpacing.sm),
+          Text(
+            '${bearing.toStringAsFixed(0)}°',
+            style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                  color: AppColors.gold,
+                ),
+          ),
+        ],
+      ),
+    );
+  }
+}
 
 class _CompassBody extends StatelessWidget {
   const _CompassBody({
@@ -175,17 +211,18 @@ class _CompassBody extends StatelessWidget {
     required this.latitude,
     required this.longitude,
     required this.locationLabel,
+    required this.phaseStyle,
   });
 
   final double qiblaBearing;
   final double latitude;
   final double longitude;
   final String locationLabel;
+  final PrayerPhaseStyle phaseStyle;
 
   @override
   Widget build(BuildContext context) {
     final Stream<CompassEvent>? stream = _safeStream();
-
     if (stream == null) {
       return const _CompassUnavailable(
         message: 'Kompass wird auf diesem Gerät nicht unterstützt.',
@@ -194,14 +231,14 @@ class _CompassBody extends StatelessWidget {
 
     return StreamBuilder<CompassEvent>(
       stream: stream,
-      builder: (BuildContext ctx, AsyncSnapshot<CompassEvent> snap) {
-        if (snap.hasError) {
+      builder: (BuildContext context, AsyncSnapshot<CompassEvent> snapshot) {
+        if (snapshot.hasError) {
           return const _CompassUnavailable(
             message: 'Kompass konnte nicht geladen werden.',
           );
         }
 
-        final double? rawHeading = snap.data?.heading;
+        final double? rawHeading = snapshot.data?.heading;
         if (rawHeading == null || rawHeading.isNaN) {
           return const _CompassUnavailable(
             message: 'Keine Sensordaten. Gerät in Form einer 8 bewegen.',
@@ -209,11 +246,9 @@ class _CompassBody extends StatelessWidget {
         }
 
         final double heading = normalizeAngle(rawHeading);
-        final double relativeDir =
-            normalizeAngle(qiblaBearing - heading);
+        final double relativeDir = normalizeAngle(qiblaBearing - heading);
         final double delta =
             smallestAngleDifference(heading, qiblaBearing).abs();
-
         final bool aligned = delta <= 8;
         final bool close = delta <= 30;
 
@@ -221,38 +256,44 @@ class _CompassBody extends StatelessWidget {
             ? AppColors.gold
             : close
                 ? AppColors.warning
-                : AppColors.primaryLight;
+                : phaseStyle.accentSoft;
 
         return Column(
           children: <Widget>[
-            SizedBox(
-              width: 240,
-              height: 240,
+            Container(
+              width: 270,
+              height: 270,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: AppColors.surface,
+                border: Border.all(color: AppColors.border),
+              ),
               child: Stack(
                 alignment: Alignment.center,
                 children: <Widget>[
-                  // Outer ring
                   Container(
-                    width: 224,
-                    height: 224,
+                    width: 226,
+                    height: 226,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: AppColors.surfaceHigh,
-                      border: Border.all(
-                          color: AppColors.border, width: 1.5),
+                      color: AppColors.overlay(
+                        phaseStyle.qiblaAmbient,
+                        AppColors.surfaceStrong,
+                        0.24,
+                      ),
+                      border: Border.all(color: AppColors.border),
                     ),
                   ),
-                  // Inner ring
                   Container(
                     width: 176,
                     height: 176,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       border: Border.all(
-                          color: AppColors.borderSubtle, width: 1),
+                        color: AppColors.borderSubtle,
+                      ),
                     ),
                   ),
-                  // Cardinal marks
                   const _CardinalMark(
                     alignment: Alignment.topCenter,
                     label: 'N',
@@ -270,40 +311,40 @@ class _CompassBody extends StatelessWidget {
                     alignment: Alignment.centerLeft,
                     label: 'W',
                   ),
-                  // Compass needle
                   Transform.rotate(
                     angle: _toRad(relativeDir),
                     child: SizedBox(
-                      width: 16,
-                      height: 148,
+                      width: 18,
+                      height: 156,
                       child: CustomPaint(
                         painter: _NeedlePainter(
                           northColor: needleColor,
-                          southColor: AppColors.textTertiary
-                              .withValues(alpha: 0.35),
+                          southColor: AppColors.textTertiary.withValues(
+                            alpha: 0.35,
+                          ),
                         ),
                       ),
                     ),
                   ),
-                  // Center dot
                   Container(
-                    width: 10,
-                    height: 10,
+                    width: 16,
+                    height: 16,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: AppColors.surface,
+                      color: AppColors.surfaceStrong,
                       border: Border.all(
-                          color: AppColors.border, width: 1.5),
+                        color: AppColors.border,
+                        width: 2,
+                      ),
                     ),
                   ),
                 ],
               ),
             ),
-            const SizedBox(height: 14),
-            // Info chips
+            const SizedBox(height: AppSpacing.xl),
             Wrap(
-              spacing: 8,
-              runSpacing: 8,
+              spacing: AppSpacing.sm,
+              runSpacing: AppSpacing.sm,
               alignment: WrapAlignment.center,
               children: <Widget>[
                 _CompassChip(
@@ -314,17 +355,16 @@ class _CompassBody extends StatelessWidget {
                 _CompassChip(
                   label: 'Gerät',
                   value: '${heading.toStringAsFixed(0)}°',
+                  color: phaseStyle.accentSoft,
                 ),
                 _CompassChip(
-                  label: aligned ? '✓ Ausgerichtet' : 'Abweichung',
-                  value: aligned
-                      ? ''
-                      : '${delta.toStringAsFixed(0)}°',
+                  label: aligned ? 'Ausrichtung' : 'Abweichung',
+                  value: aligned ? 'ok' : '${delta.toStringAsFixed(0)}°',
                   color: aligned
                       ? AppColors.success
                       : close
                           ? AppColors.warning
-                          : null,
+                          : AppColors.textSecondary,
                 ),
               ],
             ),
@@ -343,8 +383,6 @@ class _CompassBody extends StatelessWidget {
   }
 }
 
-// ── Compass unavailable state ─────────────────────────────────────────────────
-
 class _CompassUnavailable extends StatelessWidget {
   const _CompassUnavailable({required this.message});
 
@@ -354,9 +392,9 @@ class _CompassUnavailable extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(AppSpacing.lg),
       decoration: BoxDecoration(
-        color: AppColors.surfaceHigh,
+        color: AppColors.surface,
         borderRadius: BorderRadius.circular(AppRadius.lg),
         border: Border.all(color: AppColors.border),
       ),
@@ -365,16 +403,12 @@ class _CompassUnavailable extends StatelessWidget {
           const Icon(
             Icons.explore_off_rounded,
             color: AppColors.textTertiary,
-            size: 20,
           ),
-          const SizedBox(width: 12),
+          const SizedBox(width: AppSpacing.md),
           Expanded(
             child: Text(
               message,
-              style: Theme.of(context)
-                  .textTheme
-                  .bodyMedium
-                  ?.copyWith(color: AppColors.textSecondary),
+              style: Theme.of(context).textTheme.bodyMedium,
             ),
           ),
         ],
@@ -382,8 +416,6 @@ class _CompassUnavailable extends StatelessWidget {
     );
   }
 }
-
-// ── Cardinal mark ─────────────────────────────────────────────────────────────
 
 class _CardinalMark extends StatelessWidget {
   const _CardinalMark({
@@ -401,12 +433,11 @@ class _CardinalMark extends StatelessWidget {
     return Align(
       alignment: alignment,
       child: Padding(
-        padding: const EdgeInsets.all(8),
+        padding: const EdgeInsets.all(AppSpacing.md),
         child: Text(
           label,
           style: Theme.of(context).textTheme.labelMedium?.copyWith(
                 color: color,
-                fontWeight: FontWeight.w700,
               ),
         ),
       ),
@@ -414,40 +445,67 @@ class _CardinalMark extends StatelessWidget {
   }
 }
 
-// ── Compass info chip ─────────────────────────────────────────────────────────
-
 class _CompassChip extends StatelessWidget {
   const _CompassChip({
     required this.label,
     required this.value,
-    this.color,
+    required this.color,
   });
 
   final String label;
   final String value;
-  final Color? color;
+  final Color color;
 
   @override
   Widget build(BuildContext context) {
-    final Color resolvedColor = color ?? AppColors.textSecondary;
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.md,
+        vertical: AppSpacing.sm,
+      ),
       decoration: BoxDecoration(
-        color: resolvedColor.withValues(alpha: 0.08),
+        color: AppColors.overlay(color, AppColors.surfaceStrong, 0.12),
         borderRadius: BorderRadius.circular(AppRadius.full),
-        border: Border.all(color: resolvedColor.withValues(alpha: 0.25)),
+        border: Border.all(color: color.withValues(alpha: 0.28)),
       ),
       child: Text(
-        value.isEmpty ? label : '$label: $value',
+        '$label: $value',
         style: Theme.of(context).textTheme.labelMedium?.copyWith(
-              color: resolvedColor.withValues(alpha: 0.9),
+              color: color,
             ),
       ),
     );
   }
 }
 
-// ── Needle painter ────────────────────────────────────────────────────────────
+class _AmbientOrb extends StatelessWidget {
+  const _AmbientOrb({
+    required this.color,
+    required this.size,
+  });
+
+  final Color color;
+  final double size;
+
+  @override
+  Widget build(BuildContext context) {
+    return IgnorePointer(
+      child: Container(
+        width: size,
+        height: size,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          gradient: RadialGradient(
+            colors: <Color>[
+              color.withValues(alpha: 0.26),
+              Colors.transparent,
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
 
 class _NeedlePainter extends CustomPainter {
   const _NeedlePainter({
@@ -463,26 +521,24 @@ class _NeedlePainter extends CustomPainter {
     final double cx = size.width / 2;
     final double cy = size.height / 2;
 
-    // North half — points toward Qibla direction
     canvas.drawPath(
       Path()
         ..moveTo(cx, 0)
-        ..lineTo(cx + 5.5, cy - 6)
+        ..lineTo(cx + 6, cy - 8)
         ..lineTo(cx, cy)
-        ..lineTo(cx - 5.5, cy - 6)
+        ..lineTo(cx - 6, cy - 8)
         ..close(),
       Paint()
         ..color = northColor
         ..style = PaintingStyle.fill,
     );
 
-    // South half — counterbalance
     canvas.drawPath(
       Path()
         ..moveTo(cx, size.height)
-        ..lineTo(cx + 5.5, cy + 6)
+        ..lineTo(cx + 6, cy + 8)
         ..lineTo(cx, cy)
-        ..lineTo(cx - 5.5, cy + 6)
+        ..lineTo(cx - 6, cy + 8)
         ..close(),
       Paint()
         ..color = southColor
@@ -491,8 +547,10 @@ class _NeedlePainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant _NeedlePainter old) =>
-      old.northColor != northColor || old.southColor != southColor;
+  bool shouldRepaint(covariant _NeedlePainter oldDelegate) {
+    return oldDelegate.northColor != northColor ||
+        oldDelegate.southColor != southColor;
+  }
 }
 
 double _toRad(double deg) => deg * (math.pi / 180);

@@ -2,6 +2,8 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 import 'package:frontend/src/core/prayer_constants.dart';
+import 'package:frontend/src/core/prayer_phase_resolver.dart';
+import 'package:frontend/src/core/prayer_phase_style.dart';
 import 'package:frontend/src/models/app_settings.dart';
 import 'package:frontend/src/models/prayer_times_response.dart';
 import 'package:frontend/src/services/location_service.dart';
@@ -31,6 +33,7 @@ class PrayerTimesController extends ChangeNotifier {
   DateTime _now = DateTime.now();
   DateTime? _lastUpdatedAt;
   String? _liveLocationLabel;
+  PrayerPhase _prayerPhase = fallbackPrayerPhaseFor(DateTime.now());
   Timer? _ticker;
 
   AppSettings get settings => _settings;
@@ -39,6 +42,8 @@ class PrayerTimesController extends ChangeNotifier {
   String? get errorMessage => _errorMessage;
   DateTime get now => _now;
   DateTime? get lastUpdatedAt => _lastUpdatedAt;
+  PrayerPhase get prayerPhase => _prayerPhase;
+  PrayerPhaseStyle get phaseStyle => prayerPhaseStyleOf(_prayerPhase);
 
   bool get isLoading => !_isInitialized || (_isBusy && _response == null);
   bool get isRefreshing => _isBusy && _response != null;
@@ -167,6 +172,7 @@ class PrayerTimesController extends ChangeNotifier {
         _liveLocationLabel = null;
       }
       _visibleTimes = filterPrayerTimes(loaded.times);
+      _prayerPhase = resolvePrayerPhase(loaded.times, DateTime.now());
       _errorMessage = null;
       _lastUpdatedAt = DateTime.now();
     } on LocationServiceException catch (error) {

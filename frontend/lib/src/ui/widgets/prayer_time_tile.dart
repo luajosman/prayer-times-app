@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/src/core/design_tokens.dart';
+import 'package:frontend/src/core/prayer_phase_style.dart';
 
 class PrayerTimeTile extends StatelessWidget {
   const PrayerTimeTile({
@@ -8,231 +9,185 @@ class PrayerTimeTile extends StatelessWidget {
     required this.title,
     required this.time,
     required this.isNext,
+    required this.phaseStyle,
   });
 
   final String prayerKey;
   final String title;
   final String time;
   final bool isNext;
+  final PrayerPhaseStyle phaseStyle;
 
   bool get _isSunrise => prayerKey == 'Sunrise';
 
   @override
   Widget build(BuildContext context) {
-    if (_isSunrise) return _SunriseTile(title: title, time: time);
-    if (isNext) return _NextTile(prayerKey: prayerKey, title: title, time: time);
-    return _DefaultTile(prayerKey: prayerKey, title: title, time: time);
-  }
-}
+    if (_isSunrise) {
+      return _PrayerTileShell(
+        prayerKey: prayerKey,
+        title: title,
+        time: time,
+        subtitle: 'Übergang',
+        backgroundColor: AppColors.overlay(
+          const Color(0xFFB68C58),
+          AppColors.surface,
+          0.08,
+        ),
+        borderColor: AppColors.borderSubtle,
+        titleColor: AppColors.textSecondary,
+        subtitleColor: AppColors.textTertiary,
+        timeColor: AppColors.textSecondary,
+        iconTileColor: AppColors.overlay(
+          const Color(0xFFB68C58),
+          AppColors.surfaceStrong,
+          0.12,
+        ),
+        iconColor: const Color(0xFFD0A56A),
+      );
+    }
 
-// ── Default prayer tile ───────────────────────────────────────────────────────
+    if (isNext) {
+      return _PrayerTileShell(
+        prayerKey: prayerKey,
+        title: title,
+        time: time,
+        subtitle: 'Nächstes Gebet',
+        backgroundColor: AppColors.overlay(
+          phaseStyle.tint,
+          AppColors.surfaceRaised,
+          0.72,
+        ),
+        borderColor: phaseStyle.accent.withValues(alpha: 0.34),
+        titleColor: AppColors.textPrimary,
+        subtitleColor: phaseStyle.accentSoft,
+        timeColor: phaseStyle.countdownAccent,
+        iconTileColor: AppColors.overlay(
+          phaseStyle.accent,
+          AppColors.surfaceStrong,
+          0.18,
+        ),
+        iconColor: phaseStyle.accentSoft,
+      );
+    }
 
-class _DefaultTile extends StatelessWidget {
-  const _DefaultTile({
-    required this.prayerKey,
-    required this.title,
-    required this.time,
-  });
-
-  final String prayerKey;
-  final String title;
-  final String time;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.md, vertical: 13),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(AppRadius.lg),
-        color: AppColors.surface,
-        border: Border.all(color: AppColors.border),
-      ),
-      child: Row(
-        children: <Widget>[
-          _PrayerIconBox(prayerKey: prayerKey, isNext: false),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Text(
-              title,
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    color: AppColors.textPrimary,
-                    fontWeight: FontWeight.w500,
-                  ),
-            ),
-          ),
-          Text(
-            time,
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  color: AppColors.textPrimary,
-                  fontWeight: FontWeight.w600,
-                  letterSpacing: 0.5,
-                ),
-          ),
-        ],
-      ),
+    return _PrayerTileShell(
+      prayerKey: prayerKey,
+      title: title,
+      time: time,
+      backgroundColor: AppColors.surfaceRaised,
+      borderColor: AppColors.border,
+      titleColor: AppColors.textPrimary,
+      subtitleColor: AppColors.textSecondary,
+      timeColor: AppColors.textPrimary,
+      iconTileColor: AppColors.surfaceStrong,
+      iconColor: AppColors.primarySoft,
     );
   }
 }
 
-// ── Next prayer tile — gold accent ────────────────────────────────────────────
-
-class _NextTile extends StatelessWidget {
-  const _NextTile({
+class _PrayerTileShell extends StatelessWidget {
+  const _PrayerTileShell({
     required this.prayerKey,
     required this.title,
     required this.time,
+    required this.backgroundColor,
+    required this.borderColor,
+    required this.titleColor,
+    required this.subtitleColor,
+    required this.timeColor,
+    required this.iconTileColor,
+    required this.iconColor,
+    this.subtitle,
   });
 
   final String prayerKey;
   final String title;
   final String time;
+  final String? subtitle;
+  final Color backgroundColor;
+  final Color borderColor;
+  final Color titleColor;
+  final Color subtitleColor;
+  final Color timeColor;
+  final Color iconTileColor;
+  final Color iconColor;
 
   @override
   Widget build(BuildContext context) {
     return AnimatedContainer(
-      duration: const Duration(milliseconds: 260),
+      duration: AppMotion.medium,
       curve: Curves.easeOutCubic,
       padding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.md, vertical: 13),
+        horizontal: AppSpacing.lg,
+        vertical: AppSpacing.lg,
+      ),
       decoration: BoxDecoration(
+        color: backgroundColor,
         borderRadius: BorderRadius.circular(AppRadius.lg),
-        color: AppColors.gold.withValues(alpha: 0.09),
-        border: Border.all(color: AppColors.gold.withValues(alpha: 0.5)),
+        border: Border.all(color: borderColor),
       ),
       child: Row(
         children: <Widget>[
-          _PrayerIconBox(prayerKey: prayerKey, isNext: true),
-          const SizedBox(width: 14),
+          Container(
+            width: 46,
+            height: 46,
+            decoration: BoxDecoration(
+              color: iconTileColor,
+              borderRadius: BorderRadius.circular(AppRadius.md),
+            ),
+            alignment: Alignment.center,
+            child: Icon(
+              _iconFor(prayerKey),
+              size: 20,
+              color: iconColor,
+            ),
+          ),
+          const SizedBox(width: AppSpacing.lg),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
                 Text(
                   title,
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        color: AppColors.goldLight,
-                        fontWeight: FontWeight.w600,
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                        color: titleColor,
+                        fontSize: 17,
                       ),
                 ),
-                const SizedBox(height: 1),
-                Text(
-                  'Nächstes Gebet',
-                  style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                        color: AppColors.gold.withValues(alpha: 0.65),
-                        letterSpacing: 0.5,
-                      ),
-                ),
+                if (subtitle != null) ...<Widget>[
+                  const SizedBox(height: AppSpacing.xxs),
+                  Text(
+                    subtitle!,
+                    style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                          color: subtitleColor,
+                        ),
+                  ),
+                ],
               ],
             ),
           ),
+          const SizedBox(width: AppSpacing.md),
           Text(
             time,
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  color: AppColors.goldLight,
+            style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                  color: timeColor,
                   fontWeight: FontWeight.w700,
-                  letterSpacing: 0.5,
                 ),
           ),
         ],
-      ),
-    );
-  }
-}
-
-// ── Sunrise tile — de-emphasised, non-prayer marker ──────────────────────────
-
-class _SunriseTile extends StatelessWidget {
-  const _SunriseTile({required this.title, required this.time});
-
-  final String title;
-  final String time;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.md, vertical: 10),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(AppRadius.lg),
-        color: AppColors.surfaceHigh.withValues(alpha: 0.45),
-        border: Border.all(color: AppColors.borderSubtle),
-      ),
-      child: Row(
-        children: <Widget>[
-          Container(
-            width: 32,
-            height: 32,
-            decoration: BoxDecoration(
-              color: AppColors.warning.withValues(alpha: 0.10),
-              borderRadius: BorderRadius.circular(AppRadius.sm),
-            ),
-            alignment: Alignment.center,
-            child: Icon(
-              Icons.wb_sunny_outlined,
-              size: 15,
-              color: AppColors.warning.withValues(alpha: 0.75),
-            ),
-          ),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Text(
-              title,
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: AppColors.textTertiary,
-                    fontWeight: FontWeight.w400,
-                  ),
-            ),
-          ),
-          Text(
-            time,
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: AppColors.textTertiary,
-                  fontWeight: FontWeight.w500,
-                ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-// ── Prayer icon box ───────────────────────────────────────────────────────────
-
-class _PrayerIconBox extends StatelessWidget {
-  const _PrayerIconBox({required this.prayerKey, required this.isNext});
-
-  final String prayerKey;
-  final bool isNext;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: 38,
-      height: 38,
-      decoration: BoxDecoration(
-        color: isNext
-            ? AppColors.gold.withValues(alpha: 0.88)
-            : AppColors.surfaceHigh,
-        borderRadius: BorderRadius.circular(AppRadius.sm + 2),
-      ),
-      alignment: Alignment.center,
-      child: Icon(
-        _iconFor(prayerKey),
-        size: 17,
-        color: isNext ? const Color(0xFF2A1F08) : AppColors.primaryLight,
       ),
     );
   }
 
   static IconData _iconFor(String key) {
     return switch (key) {
-      'Fajr'    => Icons.wb_twilight_rounded,
-      'Dhuhr'   => Icons.light_mode_rounded,
-      'Asr'     => Icons.filter_drama_rounded,
+      'Fajr' => Icons.wb_twilight_rounded,
+      'Sunrise' => Icons.wb_sunny_outlined,
+      'Dhuhr' => Icons.light_mode_rounded,
+      'Asr' => Icons.filter_drama_rounded,
       'Maghrib' => Icons.nights_stay_rounded,
-      'Isha'    => Icons.dark_mode_rounded,
-      _         => Icons.schedule_rounded,
+      'Isha' => Icons.dark_mode_rounded,
+      _ => Icons.schedule_rounded,
     };
   }
 }
