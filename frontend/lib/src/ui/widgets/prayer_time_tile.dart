@@ -22,6 +22,8 @@ class PrayerTimeTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final AppPalette palette = AppPalette.of(context);
+
     if (_isSunrise) {
       return _PrayerTileShell(
         prayerKey: prayerKey,
@@ -30,16 +32,16 @@ class PrayerTimeTile extends StatelessWidget {
         subtitle: 'Übergang',
         backgroundColor: AppColors.overlay(
           const Color(0xFFB68C58),
-          AppColors.surface,
+          palette.surface,
           0.08,
         ),
-        borderColor: AppColors.borderSubtle,
-        titleColor: AppColors.textSecondary,
-        subtitleColor: AppColors.textTertiary,
-        timeColor: AppColors.textSecondary,
+        borderColor: palette.borderSubtle,
+        titleColor: palette.textSecondary,
+        subtitleColor: palette.textTertiary,
+        timeColor: palette.textSecondary,
         iconTileColor: AppColors.overlay(
           const Color(0xFFB68C58),
-          AppColors.surfaceStrong,
+          palette.surfaceStrong,
           0.12,
         ),
         iconColor: const Color(0xFFD0A56A),
@@ -54,16 +56,16 @@ class PrayerTimeTile extends StatelessWidget {
         subtitle: 'Nächstes Gebet',
         backgroundColor: AppColors.overlay(
           phaseStyle.tint,
-          AppColors.surfaceRaised,
+          palette.surfaceRaised,
           0.72,
         ),
         borderColor: phaseStyle.accent.withValues(alpha: 0.34),
-        titleColor: AppColors.textPrimary,
+        titleColor: palette.textPrimary,
         subtitleColor: phaseStyle.accentSoft,
         timeColor: phaseStyle.countdownAccent,
         iconTileColor: AppColors.overlay(
           phaseStyle.accent,
-          AppColors.surfaceStrong,
+          palette.surfaceStrong,
           0.18,
         ),
         iconColor: phaseStyle.accentSoft,
@@ -74,13 +76,13 @@ class PrayerTimeTile extends StatelessWidget {
       prayerKey: prayerKey,
       title: title,
       time: time,
-      backgroundColor: AppColors.surfaceRaised,
-      borderColor: AppColors.border,
-      titleColor: AppColors.textPrimary,
-      subtitleColor: AppColors.textSecondary,
-      timeColor: AppColors.textPrimary,
-      iconTileColor: AppColors.surfaceStrong,
-      iconColor: AppColors.primarySoft,
+      backgroundColor: palette.surfaceRaised,
+      borderColor: palette.border,
+      titleColor: palette.textPrimary,
+      subtitleColor: palette.textSecondary,
+      timeColor: palette.textPrimary,
+      iconTileColor: palette.surfaceStrong,
+      iconColor: palette.primarySoft,
     );
   }
 }

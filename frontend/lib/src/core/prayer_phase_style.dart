@@ -35,13 +35,13 @@ class PrayerPhaseStyle {
   final Color sectionAccent;
   final Color qiblaAmbient;
 
-  LinearGradient get heroGradient {
+  LinearGradient heroGradient(AppPalette palette) {
     return LinearGradient(
       begin: Alignment.topLeft,
       end: Alignment.bottomRight,
       colors: <Color>[
-        AppColors.overlay(ambient, AppColors.surface, 0.18),
-        AppColors.overlay(tint, AppColors.surfaceRaised, 0.68),
+        AppColors.overlay(ambient, palette.surface, 0.18),
+        AppColors.overlay(tint, palette.surfaceRaised, 0.68),
       ],
     );
   }

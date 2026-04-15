@@ -15,6 +15,8 @@ class SectionHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final AppPalette palette = AppPalette.of(context);
+
     return Row(
       children: <Widget>[
         Container(
@@ -35,7 +37,7 @@ class SectionHeader extends StatelessWidget {
         Text(
           label.toUpperCase(),
           style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                color: AppColors.textSecondary,
+                color: palette.textSecondary,
                 letterSpacing: 1.2,
                 fontWeight: FontWeight.w700,
               ),
@@ -45,7 +47,7 @@ class SectionHeader extends StatelessWidget {
           Text(
             trailing!,
             style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                  color: AppColors.textTertiary,
+                  color: palette.textTertiary,
                 ),
           ),
       ],

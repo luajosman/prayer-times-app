@@ -25,6 +25,7 @@ class QiblaCompassCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final AppPalette palette = AppPalette.of(context);
     final double qiblaBearing = calculateQiblaBearing(
       latitude: latitude,
       longitude: longitude,
@@ -33,9 +34,9 @@ class QiblaCompassCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(AppSpacing.xl),
       decoration: BoxDecoration(
-        color: AppColors.surfaceRaised,
+        color: palette.surfaceRaised,
         borderRadius: BorderRadius.circular(AppRadius.xl),
-        border: Border.all(color: AppColors.border),
+        border: Border.all(color: palette.border),
         boxShadow: AppShadows.panel,
       ),
       child: Stack(
@@ -46,7 +47,7 @@ class QiblaCompassCard extends StatelessWidget {
             child: _AmbientOrb(
               color: AppColors.overlay(
                 phaseStyle.qiblaAmbient,
-                AppColors.gold,
+                palette.gold,
                 0.18,
               ),
               size: 118,
@@ -55,41 +56,30 @@ class QiblaCompassCard extends StatelessWidget {
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: <Widget>[
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: <Widget>[
-                        Text(
-                          'Qibla',
-                          style: Theme.of(context).textTheme.headlineSmall,
-                        ),
-                        const SizedBox(height: AppSpacing.xs),
-                        Text(
-                          locationLabel,
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                          style:
-                              Theme.of(context).textTheme.bodySmall?.copyWith(
-                                    color: AppColors.textSecondary,
-                                  ),
-                        ),
-                      ],
+              Text(
+                'Qibla',
+                style: Theme.of(context).textTheme.headlineSmall,
+              ),
+              const SizedBox(height: AppSpacing.xs),
+              Text(
+                '${qiblaBearing.toStringAsFixed(0)}° zur Kaaba',
+                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                      color: palette.gold,
                     ),
-                  ),
-                  const SizedBox(width: AppSpacing.md),
-                  _BearingBadge(bearing: qiblaBearing),
-                ],
+              ),
+              const SizedBox(height: AppSpacing.xs),
+              Text(
+                locationLabel,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: palette.textSecondary,
+                    ),
               ),
               const SizedBox(height: AppSpacing.xxl),
               Center(
-                child: _CompassBody(
+                child: _CompassPanel(
                   qiblaBearing: qiblaBearing,
-                  latitude: latitude,
-                  longitude: longitude,
-                  locationLabel: locationLabel,
                   phaseStyle: phaseStyle,
                 ),
               ),
@@ -100,7 +90,7 @@ class QiblaCompassCard extends StatelessWidget {
                     child: OutlinedButton.icon(
                       onPressed: () => _openMapView(context),
                       icon: const Icon(Icons.alt_route_rounded, size: 16),
-                      label: const Text('Luftlinie'),
+                      label: const Text('Qibla-Karte'),
                     ),
                   ),
                   const SizedBox(width: AppSpacing.md),
@@ -108,7 +98,7 @@ class QiblaCompassCard extends StatelessWidget {
                     child: FilledButton.icon(
                       onPressed: () => _openInGoogleMaps(context),
                       icon: const Icon(Icons.open_in_new_rounded, size: 16),
-                      label: const Text('Google Maps'),
+                      label: const Text('In Google Maps'),
                     ),
                   ),
                 ],
@@ -167,57 +157,13 @@ class QiblaCompassCard extends StatelessWidget {
   }
 }
 
-class _BearingBadge extends StatelessWidget {
-  const _BearingBadge({required this.bearing});
-
-  final double bearing;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.lg,
-        vertical: AppSpacing.md,
-      ),
-      decoration: BoxDecoration(
-        color: AppColors.goldTint,
-        borderRadius: BorderRadius.circular(AppRadius.full),
-        border: Border.all(color: AppColors.goldSoft),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: <Widget>[
-          const Icon(
-            Icons.navigation_rounded,
-            size: 14,
-            color: AppColors.gold,
-          ),
-          const SizedBox(width: AppSpacing.sm),
-          Text(
-            '${bearing.toStringAsFixed(0)}°',
-            style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                  color: AppColors.gold,
-                ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _CompassBody extends StatelessWidget {
-  const _CompassBody({
+class _CompassPanel extends StatelessWidget {
+  const _CompassPanel({
     required this.qiblaBearing,
-    required this.latitude,
-    required this.longitude,
-    required this.locationLabel,
     required this.phaseStyle,
   });
 
   final double qiblaBearing;
-  final double latitude;
-  final double longitude;
-  final String locationLabel;
   final PrayerPhaseStyle phaseStyle;
 
   @override
@@ -246,127 +192,37 @@ class _CompassBody extends StatelessWidget {
         }
 
         final double heading = normalizeAngle(rawHeading);
-        final double relativeDir = normalizeAngle(qiblaBearing - heading);
+        final double relativeDirection = normalizeAngle(qiblaBearing - heading);
         final double delta =
             smallestAngleDifference(heading, qiblaBearing).abs();
         final bool aligned = delta <= 8;
         final bool close = delta <= 30;
-
-        final Color needleColor = aligned
-            ? AppColors.gold
+        final Color toneColor = aligned
+            ? AppColors.success
             : close
                 ? AppColors.warning
                 : phaseStyle.accentSoft;
 
+        final String statusLabel = aligned
+            ? 'Ausrichtung gut'
+            : close
+                ? 'Noch ${delta.toStringAsFixed(0)}° bis Qibla'
+                : '${delta.toStringAsFixed(0)}° Abweichung';
+        final String detailLabel =
+            aligned ? 'Sensor aktiv' : 'Gerät ${heading.toStringAsFixed(0)}°';
+
         return Column(
           children: <Widget>[
-            Container(
-              width: 270,
-              height: 270,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: AppColors.surface,
-                border: Border.all(color: AppColors.border),
-              ),
-              child: Stack(
-                alignment: Alignment.center,
-                children: <Widget>[
-                  Container(
-                    width: 226,
-                    height: 226,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: AppColors.overlay(
-                        phaseStyle.qiblaAmbient,
-                        AppColors.surfaceStrong,
-                        0.24,
-                      ),
-                      border: Border.all(color: AppColors.border),
-                    ),
-                  ),
-                  Container(
-                    width: 176,
-                    height: 176,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      border: Border.all(
-                        color: AppColors.borderSubtle,
-                      ),
-                    ),
-                  ),
-                  const _CardinalMark(
-                    alignment: Alignment.topCenter,
-                    label: 'N',
-                    color: AppColors.gold,
-                  ),
-                  const _CardinalMark(
-                    alignment: Alignment.centerRight,
-                    label: 'O',
-                  ),
-                  const _CardinalMark(
-                    alignment: Alignment.bottomCenter,
-                    label: 'S',
-                  ),
-                  const _CardinalMark(
-                    alignment: Alignment.centerLeft,
-                    label: 'W',
-                  ),
-                  Transform.rotate(
-                    angle: _toRad(relativeDir),
-                    child: SizedBox(
-                      width: 18,
-                      height: 156,
-                      child: CustomPaint(
-                        painter: _NeedlePainter(
-                          northColor: needleColor,
-                          southColor: AppColors.textTertiary.withValues(
-                            alpha: 0.35,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                  Container(
-                    width: 16,
-                    height: 16,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: AppColors.surfaceStrong,
-                      border: Border.all(
-                        color: AppColors.border,
-                        width: 2,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
+            _CompassDial(
+              relativeDirection: relativeDirection,
+              phaseStyle: phaseStyle,
+              needleColor: toneColor,
             ),
-            const SizedBox(height: AppSpacing.xl),
-            Wrap(
-              spacing: AppSpacing.sm,
-              runSpacing: AppSpacing.sm,
-              alignment: WrapAlignment.center,
-              children: <Widget>[
-                _CompassChip(
-                  label: 'Qibla',
-                  value: '${qiblaBearing.toStringAsFixed(0)}°',
-                  color: AppColors.gold,
-                ),
-                _CompassChip(
-                  label: 'Gerät',
-                  value: '${heading.toStringAsFixed(0)}°',
-                  color: phaseStyle.accentSoft,
-                ),
-                _CompassChip(
-                  label: aligned ? 'Ausrichtung' : 'Abweichung',
-                  value: aligned ? 'ok' : '${delta.toStringAsFixed(0)}°',
-                  color: aligned
-                      ? AppColors.success
-                      : close
-                          ? AppColors.warning
-                          : AppColors.textSecondary,
-                ),
-              ],
+            const SizedBox(height: AppSpacing.lg),
+            _QiblaStatusRow(
+              statusLabel: statusLabel,
+              detailLabel: detailLabel,
+              toneColor: toneColor,
             ),
           ],
         );
@@ -383,6 +239,155 @@ class _CompassBody extends StatelessWidget {
   }
 }
 
+class _CompassDial extends StatelessWidget {
+  const _CompassDial({
+    required this.relativeDirection,
+    required this.phaseStyle,
+    required this.needleColor,
+  });
+
+  final double relativeDirection;
+  final PrayerPhaseStyle phaseStyle;
+  final Color needleColor;
+
+  @override
+  Widget build(BuildContext context) {
+    final AppPalette palette = AppPalette.of(context);
+
+    return Container(
+      width: 270,
+      height: 270,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: palette.surface,
+        border: Border.all(color: palette.border),
+      ),
+      child: Stack(
+        alignment: Alignment.center,
+        children: <Widget>[
+          Container(
+            width: 226,
+            height: 226,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: AppColors.overlay(
+                phaseStyle.qiblaAmbient,
+                palette.surfaceStrong,
+                0.24,
+              ),
+              border: Border.all(color: palette.border),
+            ),
+          ),
+          Container(
+            width: 176,
+            height: 176,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              border: Border.all(color: palette.borderSubtle),
+            ),
+          ),
+          _CardinalMark(
+            alignment: Alignment.topCenter,
+            label: 'N',
+            color: palette.gold,
+          ),
+          _CardinalMark(
+            alignment: Alignment.centerRight,
+            label: 'O',
+            color: palette.textSecondary,
+          ),
+          _CardinalMark(
+            alignment: Alignment.bottomCenter,
+            label: 'S',
+            color: palette.textSecondary,
+          ),
+          _CardinalMark(
+            alignment: Alignment.centerLeft,
+            label: 'W',
+            color: palette.textSecondary,
+          ),
+          Transform.rotate(
+            angle: _toRad(relativeDirection),
+            child: SizedBox(
+              width: 18,
+              height: 156,
+              child: CustomPaint(
+                painter: _NeedlePainter(
+                  northColor: needleColor,
+                  southColor: palette.textTertiary.withValues(alpha: 0.35),
+                ),
+              ),
+            ),
+          ),
+          Container(
+            width: 16,
+            height: 16,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: palette.surfaceStrong,
+              border: Border.all(
+                color: palette.border,
+                width: 2,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _QiblaStatusRow extends StatelessWidget {
+  const _QiblaStatusRow({
+    required this.statusLabel,
+    required this.detailLabel,
+    required this.toneColor,
+  });
+
+  final String statusLabel;
+  final String detailLabel;
+  final Color toneColor;
+
+  @override
+  Widget build(BuildContext context) {
+    final AppPalette palette = AppPalette.of(context);
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.lg,
+        vertical: AppSpacing.md,
+      ),
+      decoration: BoxDecoration(
+        color: palette.surfaceStrong,
+        borderRadius: BorderRadius.circular(AppRadius.lg),
+        border: Border.all(color: palette.borderSubtle),
+      ),
+      child: Row(
+        children: <Widget>[
+          Container(
+            width: 10,
+            height: 10,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: toneColor,
+            ),
+          ),
+          const SizedBox(width: AppSpacing.md),
+          Expanded(
+            child: Text(
+              '$statusLabel · $detailLabel',
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: palette.textSecondary,
+                  ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class _CompassUnavailable extends StatelessWidget {
   const _CompassUnavailable({required this.message});
 
@@ -390,25 +395,29 @@ class _CompassUnavailable extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final AppPalette palette = AppPalette.of(context);
+
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(AppSpacing.lg),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: palette.surface,
         borderRadius: BorderRadius.circular(AppRadius.lg),
-        border: Border.all(color: AppColors.border),
+        border: Border.all(color: palette.border),
       ),
       child: Row(
         children: <Widget>[
-          const Icon(
+          Icon(
             Icons.explore_off_rounded,
-            color: AppColors.textTertiary,
+            color: palette.textTertiary,
           ),
           const SizedBox(width: AppSpacing.md),
           Expanded(
             child: Text(
               message,
-              style: Theme.of(context).textTheme.bodyMedium,
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: palette.textSecondary,
+                  ),
             ),
           ),
         ],
@@ -421,7 +430,7 @@ class _CardinalMark extends StatelessWidget {
   const _CardinalMark({
     required this.alignment,
     required this.label,
-    this.color = AppColors.textSecondary,
+    required this.color,
   });
 
   final Alignment alignment;
@@ -440,39 +449,6 @@ class _CardinalMark extends StatelessWidget {
                 color: color,
               ),
         ),
-      ),
-    );
-  }
-}
-
-class _CompassChip extends StatelessWidget {
-  const _CompassChip({
-    required this.label,
-    required this.value,
-    required this.color,
-  });
-
-  final String label;
-  final String value;
-  final Color color;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.md,
-        vertical: AppSpacing.sm,
-      ),
-      decoration: BoxDecoration(
-        color: AppColors.overlay(color, AppColors.surfaceStrong, 0.12),
-        borderRadius: BorderRadius.circular(AppRadius.full),
-        border: Border.all(color: color.withValues(alpha: 0.28)),
-      ),
-      child: Text(
-        '$label: $value',
-        style: Theme.of(context).textTheme.labelMedium?.copyWith(
-              color: color,
-            ),
       ),
     );
   }
@@ -518,32 +494,30 @@ class _NeedlePainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    final double cx = size.width / 2;
-    final double cy = size.height / 2;
+    final Paint northPaint = Paint()
+      ..color = northColor
+      ..style = PaintingStyle.fill;
+    final Paint southPaint = Paint()
+      ..color = southColor
+      ..style = PaintingStyle.fill;
 
-    canvas.drawPath(
-      Path()
-        ..moveTo(cx, 0)
-        ..lineTo(cx + 6, cy - 8)
-        ..lineTo(cx, cy)
-        ..lineTo(cx - 6, cy - 8)
-        ..close(),
-      Paint()
-        ..color = northColor
-        ..style = PaintingStyle.fill,
-    );
+    final Path northPath = Path()
+      ..moveTo(size.width / 2, 0)
+      ..lineTo(size.width, size.height * 0.6)
+      ..lineTo(size.width / 2, size.height * 0.42)
+      ..lineTo(0, size.height * 0.6)
+      ..close();
 
-    canvas.drawPath(
-      Path()
-        ..moveTo(cx, size.height)
-        ..lineTo(cx + 6, cy + 8)
-        ..lineTo(cx, cy)
-        ..lineTo(cx - 6, cy + 8)
-        ..close(),
-      Paint()
-        ..color = southColor
-        ..style = PaintingStyle.fill,
-    );
+    final Path southPath = Path()
+      ..moveTo(size.width / 2, size.height)
+      ..lineTo(size.width, size.height * 0.4)
+      ..lineTo(size.width / 2, size.height * 0.58)
+      ..lineTo(0, size.height * 0.4)
+      ..close();
+
+    canvas.drawShadow(northPath, northColor.withValues(alpha: 0.28), 8, false);
+    canvas.drawPath(northPath, northPaint);
+    canvas.drawPath(southPath, southPaint);
   }
 
   @override
@@ -553,4 +527,4 @@ class _NeedlePainter extends CustomPainter {
   }
 }
 
-double _toRad(double deg) => deg * (math.pi / 180);
+double _toRad(double degrees) => degrees * (math.pi / 180);

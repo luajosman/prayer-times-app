@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/foundation.dart';
+import 'package:frontend/src/core/app_theme_preference.dart';
 import 'package:frontend/src/core/prayer_constants.dart';
 import 'package:frontend/src/core/prayer_phase_resolver.dart';
 import 'package:frontend/src/core/prayer_phase_style.dart';
@@ -201,6 +202,17 @@ class PrayerTimesController extends ChangeNotifier {
     await refresh();
   }
 
+  Future<void> setUseAutoMethod(bool useAutoMethod) async {
+    if (_settings.useAutoMethod == useAutoMethod) {
+      return;
+    }
+
+    _settings = _settings.copyWith(useAutoMethod: useAutoMethod);
+    await _settingsStore.save(_settings);
+    notifyListeners();
+    await refresh();
+  }
+
   Future<void> updateSchool(int school) async {
     if (_settings.school == school) {
       return;
@@ -210,6 +222,16 @@ class PrayerTimesController extends ChangeNotifier {
     await _settingsStore.save(_settings);
     notifyListeners();
     await refresh();
+  }
+
+  Future<void> updateThemePreference(AppThemePreference themePreference) async {
+    if (_settings.themePreference == themePreference) {
+      return;
+    }
+
+    _settings = _settings.copyWith(themePreference: themePreference);
+    await _settingsStore.save(_settings);
+    notifyListeners();
   }
 
   Future<void> setUseDeviceLocation(bool useDeviceLocation) async {

@@ -27,6 +27,7 @@ class QiblaMapPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final AppPalette palette = AppPalette.of(context);
     final PrayerPhaseStyle resolvedPhase =
         phaseStyle ?? prayerPhaseStyleOf(PrayerPhase.dhuhr);
     final List<GeoCoordinate> path = buildGeodesicPathToKaaba(
@@ -45,12 +46,12 @@ class QiblaMapPage extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Qibla Route'),
+        title: const Text('Qibla-Karte'),
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _openInGoogleMaps(context),
         icon: const Icon(Icons.open_in_new_rounded, size: 18),
-        label: const Text('Google Maps'),
+        label: const Text('In Google Maps'),
       ),
       body: DecoratedBox(
         decoration: BoxDecoration(
@@ -60,10 +61,10 @@ class QiblaMapPage extends StatelessWidget {
             colors: <Color>[
               AppColors.overlay(
                 resolvedPhase.qiblaAmbient,
-                AppColors.background,
+                palette.background,
                 0.14,
               ),
-              AppColors.background,
+              palette.background,
             ],
           ),
         ),
@@ -80,16 +81,16 @@ class QiblaMapPage extends StatelessWidget {
                 width: double.infinity,
                 padding: const EdgeInsets.all(AppSpacing.xl),
                 decoration: BoxDecoration(
-                  color: AppColors.surfaceRaised,
+                  color: palette.surfaceRaised,
                   borderRadius: BorderRadius.circular(AppRadius.xl),
-                  border: Border.all(color: AppColors.border),
+                  border: Border.all(color: palette.border),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: <Widget>[
-                    const SectionHeader(
-                      label: 'Luftlinie zur Kaaba',
-                      accentColor: AppColors.gold,
+                    SectionHeader(
+                      label: 'Route zur Kaaba',
+                      accentColor: palette.gold,
                     ),
                     const SizedBox(height: AppSpacing.lg),
                     Wrap(
@@ -130,7 +131,7 @@ class QiblaMapPage extends StatelessWidget {
                   borderRadius: BorderRadius.circular(AppRadius.xl),
                   child: DecoratedBox(
                     decoration: BoxDecoration(
-                      border: Border.all(color: AppColors.border),
+                      border: Border.all(color: palette.border),
                     ),
                     child: FlutterMap(
                       options: MapOptions(
@@ -254,17 +255,18 @@ class _MapMarker extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final AppPalette palette = AppPalette.of(context);
     final Color background =
-        isDestination ? AppColors.gold : AppColors.surfaceStrong;
+        isDestination ? palette.gold : palette.surfaceStrong;
     final Color foreground =
-        isDestination ? AppColors.goldTint : AppColors.primarySoft;
+        isDestination ? palette.goldTint : palette.primarySoft;
 
     return Container(
       decoration: BoxDecoration(
         shape: BoxShape.circle,
         color: background,
         border: Border.all(
-          color: isDestination ? AppColors.goldSoft : AppColors.border,
+          color: isDestination ? palette.goldSoft : palette.border,
           width: 2,
         ),
       ),

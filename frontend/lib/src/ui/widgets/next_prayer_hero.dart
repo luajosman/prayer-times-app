@@ -21,15 +21,16 @@ class NextPrayerHero extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final bool hasContent = prayerLabel != null && timeLabel != null;
+    final AppPalette palette = AppPalette.of(context);
 
     return AnimatedContainer(
       duration: AppMotion.medium,
       curve: Curves.easeOutCubic,
       decoration: BoxDecoration(
-        gradient: phaseStyle.heroGradient,
+        gradient: phaseStyle.heroGradient(palette),
         borderRadius: BorderRadius.circular(AppRadius.xl),
         border: Border.all(
-          color: AppColors.overlay(phaseStyle.accent, AppColors.border, 0.34),
+          color: AppColors.overlay(phaseStyle.accent, palette.border, 0.34),
         ),
         boxShadow: AppShadows.glow,
       ),
@@ -85,6 +86,8 @@ class _HeroContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final AppPalette palette = AppPalette.of(context);
+
     return Semantics(
       label: countdownLabel == null
           ? 'Nächstes Gebet $prayerLabel um $timeLabel'
@@ -100,17 +103,18 @@ class _HeroContent extends StatelessWidget {
             decoration: BoxDecoration(
               color: AppColors.overlay(
                 AppColors.gold,
-                AppColors.surfaceStrong,
+                palette.surfaceStrong,
                 0.18,
               ),
               borderRadius: BorderRadius.circular(AppRadius.full),
-              border:
-                  Border.all(color: AppColors.goldSoft.withValues(alpha: 0.4)),
+              border: Border.all(
+                color: palette.goldSoft.withValues(alpha: 0.4),
+              ),
             ),
             child: Text(
               'NÄCHSTES GEBET',
               style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                    color: AppColors.gold,
+                    color: palette.gold,
                     letterSpacing: 1.1,
                     fontWeight: FontWeight.w700,
                   ),
@@ -128,7 +132,7 @@ class _HeroContent extends StatelessWidget {
                       prayerLabel,
                       style:
                           Theme.of(context).textTheme.headlineLarge?.copyWith(
-                                color: AppColors.textPrimary,
+                                color: palette.textPrimary,
                                 fontWeight: FontWeight.w700,
                                 height: 0.95,
                               ),
@@ -137,7 +141,7 @@ class _HeroContent extends StatelessWidget {
                     Text(
                       timeLabel,
                       style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                            color: AppColors.textSecondary,
+                            color: palette.textSecondary,
                             fontWeight: FontWeight.w500,
                           ),
                     ),
@@ -168,13 +172,15 @@ class _CountdownBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final AppPalette palette = AppPalette.of(context);
+
     return Container(
       padding: const EdgeInsets.symmetric(
         horizontal: AppSpacing.lg,
         vertical: AppSpacing.md,
       ),
       decoration: BoxDecoration(
-        color: AppColors.overlay(accent, AppColors.surfaceStrong, 0.16),
+        color: AppColors.overlay(accent, palette.surfaceStrong, 0.16),
         borderRadius: BorderRadius.circular(AppRadius.lg),
         border: Border.all(color: accent.withValues(alpha: 0.28)),
       ),
@@ -195,7 +201,7 @@ class _CountdownBadge extends StatelessWidget {
           Text(
             'verbleibend',
             style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                  color: AppColors.textTertiary,
+                  color: palette.textTertiary,
                   letterSpacing: 0.5,
                 ),
           ),
@@ -227,19 +233,21 @@ class _HeroEmpty extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final AppPalette palette = AppPalette.of(context);
+
     return Row(
       children: <Widget>[
         Container(
           width: 44,
           height: 44,
           decoration: BoxDecoration(
-            color: AppColors.surfaceStrong,
+            color: palette.surfaceStrong,
             borderRadius: BorderRadius.circular(AppRadius.md),
           ),
           alignment: Alignment.center,
-          child: const Icon(
+          child: Icon(
             Icons.cloud_off_rounded,
-            color: AppColors.textTertiary,
+            color: palette.textTertiary,
           ),
         ),
         const SizedBox(width: AppSpacing.md),
@@ -247,7 +255,7 @@ class _HeroEmpty extends StatelessWidget {
           child: Text(
             'Keine Gebetszeiten verfügbar',
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  color: AppColors.textSecondary,
+                  color: palette.textSecondary,
                 ),
           ),
         ),

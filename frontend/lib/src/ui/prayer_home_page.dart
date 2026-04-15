@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:frontend/src/controllers/prayer_times_controller.dart';
+import 'package:frontend/src/core/app_theme_preference.dart';
 import 'package:frontend/src/core/design_tokens.dart';
 import 'package:frontend/src/core/prayer_constants.dart';
 import 'package:frontend/src/core/prayer_phase_style.dart';
@@ -9,6 +10,7 @@ import 'package:frontend/src/ui/widgets/home_app_bar.dart';
 import 'package:frontend/src/ui/widgets/next_prayer_hero.dart';
 import 'package:frontend/src/ui/widgets/prayer_time_tile.dart';
 import 'package:frontend/src/ui/widgets/qibla_compass_card.dart';
+import 'package:frontend/src/ui/widgets/segmented_setting.dart';
 import 'package:frontend/src/ui/widgets/section_header.dart';
 import 'package:frontend/src/ui/widgets/status_banner.dart';
 import 'package:frontend/src/ui/widgets/trust_context_strip.dart';
@@ -19,10 +21,14 @@ class PrayerHomePage extends StatefulWidget {
     super.key,
     this.autoLoad = true,
     this.controller,
+    this.onThemeModeChanged,
+    this.onPrayerPhaseChanged,
   });
 
   final bool autoLoad;
   final PrayerTimesController? controller;
+  final ValueChanged<AppThemePreference>? onThemeModeChanged;
+  final ValueChanged<PrayerPhase>? onPrayerPhaseChanged;
 
   @override
   State<PrayerHomePage> createState() => _PrayerHomePageState();
@@ -32,6 +38,8 @@ class _PrayerHomePageState extends State<PrayerHomePage>
     with WidgetsBindingObserver {
   late final PrayerTimesController _controller;
   late final bool _ownsController;
+  AppThemePreference? _lastReportedThemeMode;
+  PrayerPhase? _lastReportedPrayerPhase;
 
   @override
   void initState() {
@@ -39,6 +47,7 @@ class _PrayerHomePageState extends State<PrayerHomePage>
     WidgetsBinding.instance.addObserver(this);
     _ownsController = widget.controller == null;
     _controller = widget.controller ?? PrayerTimesController();
+    _controller.addListener(_syncAppState);
     if (widget.autoLoad) {
       unawaited(_controller.initialize());
     }
@@ -54,10 +63,25 @@ class _PrayerHomePageState extends State<PrayerHomePage>
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
+    _controller.removeListener(_syncAppState);
     if (_ownsController) {
       _controller.dispose();
     }
     super.dispose();
+  }
+
+  void _syncAppState() {
+    final AppThemePreference themeMode = _controller.settings.themePreference;
+    if (_lastReportedThemeMode != themeMode) {
+      _lastReportedThemeMode = themeMode;
+      widget.onThemeModeChanged?.call(themeMode);
+    }
+
+    final PrayerPhase phase = _controller.prayerPhase;
+    if (_lastReportedPrayerPhase != phase) {
+      _lastReportedPrayerPhase = phase;
+      widget.onPrayerPhaseChanged?.call(phase);
+    }
   }
 
   @override
@@ -68,6 +92,7 @@ class _PrayerHomePageState extends State<PrayerHomePage>
         final PrayerEvent? next = _controller.nextPrayer;
         final Duration? countdown = _controller.nextPrayerIn;
         final PrayerPhaseStyle phaseStyle = _controller.phaseStyle;
+        final AppPalette palette = AppPalette.of(context);
 
         return Scaffold(
           body: DecoratedBox(
@@ -78,10 +103,10 @@ class _PrayerHomePageState extends State<PrayerHomePage>
                 colors: <Color>[
                   AppColors.overlay(
                     phaseStyle.tint,
-                    AppColors.background,
+                    palette.background,
                     0.06,
                   ),
-                  AppColors.background,
+                  palette.background,
                 ],
               ),
             ),
@@ -92,7 +117,7 @@ class _PrayerHomePageState extends State<PrayerHomePage>
                   child: RefreshIndicator(
                     onRefresh: () => _controller.refresh(),
                     color: AppColors.primarySoft,
-                    backgroundColor: AppColors.surfaceStrong,
+                    backgroundColor: palette.surfaceStrong,
                     child: ListView(
                       physics: const AlwaysScrollableScrollPhysics(),
                       padding: const EdgeInsets.fromLTRB(
@@ -172,7 +197,7 @@ class _PrayerHomePageState extends State<PrayerHomePage>
                         const SizedBox(height: AppSpacing.md),
                         _buildAnimated(
                           index: 16,
-                          child: _buildSettingsCard(phaseStyle),
+                          child: _buildSettingsPanel(context, phaseStyle),
                         ),
                       ],
                     ),
@@ -203,16 +228,18 @@ class _PrayerHomePageState extends State<PrayerHomePage>
   }
 
   Widget _buildLoadingCard() {
+    final AppPalette palette = AppPalette.of(context);
+
     return Container(
       padding: const EdgeInsets.all(AppSpacing.xl),
       decoration: BoxDecoration(
-        color: AppColors.surfaceRaised,
+        color: palette.surfaceRaised,
         borderRadius: BorderRadius.circular(AppRadius.lg),
-        border: Border.all(color: AppColors.border),
+        border: Border.all(color: palette.border),
       ),
-      child: const Row(
+      child: Row(
         children: <Widget>[
-          SizedBox(
+          const SizedBox(
             width: 22,
             height: 22,
             child: CircularProgressIndicator(
@@ -220,12 +247,12 @@ class _PrayerHomePageState extends State<PrayerHomePage>
               color: AppColors.primarySoft,
             ),
           ),
-          SizedBox(width: AppSpacing.md),
+          const SizedBox(width: AppSpacing.md),
           Expanded(
             child: Text(
               'Gebetszeiten werden geladen …',
               style: TextStyle(
-                color: AppColors.textSecondary,
+                color: palette.textSecondary,
                 fontSize: 14,
                 fontWeight: FontWeight.w600,
               ),
@@ -240,18 +267,22 @@ class _PrayerHomePageState extends State<PrayerHomePage>
     PrayerEvent? next,
     PrayerPhaseStyle phaseStyle,
   ) {
+    final AppPalette palette = AppPalette.of(context);
+
     if (_controller.visibleTimes.isEmpty) {
       return <Widget>[
         Container(
           padding: const EdgeInsets.all(AppSpacing.xl),
           decoration: BoxDecoration(
-            color: AppColors.surfaceRaised,
+            color: palette.surfaceRaised,
             borderRadius: BorderRadius.circular(AppRadius.lg),
-            border: Border.all(color: AppColors.border),
+            border: Border.all(color: palette.border),
           ),
           child: Text(
             'Keine Gebetszeiten verfügbar. Prüfe Backend, Standort oder Berechtigungen.',
-            style: Theme.of(context).textTheme.bodyMedium,
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: palette.textSecondary,
+                ),
           ),
         ),
       ];
@@ -300,180 +331,191 @@ class _PrayerHomePageState extends State<PrayerHomePage>
     );
   }
 
-  Widget _buildSettingsCard(PrayerPhaseStyle phaseStyle) {
+  Widget _buildSettingsPanel(
+    BuildContext context,
+    PrayerPhaseStyle phaseStyle,
+  ) {
+    final AppPalette palette = AppPalette.of(context);
     final bool useLive = _controller.settings.useDeviceLocation;
 
     return Container(
       padding: const EdgeInsets.all(AppSpacing.xl),
       decoration: BoxDecoration(
-        color: AppColors.surfaceRaised,
+        color: palette.surfaceRaised,
         borderRadius: BorderRadius.circular(AppRadius.xl),
-        border: Border.all(color: AppColors.border),
+        border: Border.all(color: palette.border),
         boxShadow: AppShadows.panel,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: <Widget>[
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: <Widget>[
-                    Text(
-                      'Berechnung und Standort',
-                      style: Theme.of(context).textTheme.titleLarge,
+          _SettingsSection(
+            icon: useLive
+                ? Icons.my_location_rounded
+                : Icons.edit_location_alt_rounded,
+            title: 'Standort',
+            trailing: _SettingsStatusBadge(
+              label: useLive ? 'Live' : 'Manuell',
+              color: phaseStyle.accentSoft,
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                SegmentedSetting<bool>(
+                  value: useLive,
+                  accentColor: phaseStyle.accentSoft,
+                  onChanged: (bool value) {
+                    unawaited(_controller.setUseDeviceLocation(value));
+                  },
+                  options: const <SegmentedSettingOption<bool>>[
+                    SegmentedSettingOption<bool>(
+                      value: true,
+                      label: 'Live-GPS',
                     ),
-                    const SizedBox(height: AppSpacing.xs),
-                    Text(
-                      'Stabile Defaults, klare Transparenz und manuelle Kontrolle bei Bedarf.',
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: AppColors.textSecondary,
-                          ),
+                    SegmentedSettingOption<bool>(
+                      value: false,
+                      label: 'Manuell',
                     ),
                   ],
                 ),
-              ),
-              if (_controller.settings.useAutoMethod)
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: AppSpacing.md,
-                    vertical: AppSpacing.sm,
-                  ),
-                  decoration: BoxDecoration(
-                    color: AppColors.overlay(
-                      phaseStyle.accent,
-                      AppColors.surfaceStrong,
-                      0.12,
-                    ),
-                    borderRadius: BorderRadius.circular(AppRadius.full),
-                    border: Border.all(
-                      color: phaseStyle.accent.withValues(alpha: 0.22),
-                    ),
-                  ),
-                  child: Text(
-                    'Auto nach Region',
-                    style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                          color: phaseStyle.accentSoft,
-                        ),
-                  ),
-                ),
-            ],
-          ),
-          const SizedBox(height: AppSpacing.xl),
-          _SettingsGroup(
-            label: 'Standortmodus',
-            child: Wrap(
-              spacing: AppSpacing.sm,
-              runSpacing: AppSpacing.sm,
-              children: <Widget>[
-                ChoiceChip(
-                  label: const Text('Live-GPS'),
-                  selected: useLive,
-                  onSelected: (_) =>
-                      unawaited(_controller.setUseDeviceLocation(true)),
-                ),
-                ChoiceChip(
-                  label: const Text('Manuell'),
-                  selected: !useLive,
-                  onSelected: (_) =>
-                      unawaited(_controller.setUseDeviceLocation(false)),
+                const SizedBox(height: AppSpacing.md),
+                _SettingsSummaryRow(
+                  icon: useLive
+                      ? Icons.location_searching_rounded
+                      : Icons.pin_drop_outlined,
+                  label: useLive ? 'Aktiver Standort' : 'Manueller Standort',
+                  value: _controller.locationHeadline,
+                  meta: _formatCoordinates(),
+                  action: !useLive
+                      ? TextButton.icon(
+                          onPressed: () => _openManualLocationSheet(context),
+                          icon: const Icon(
+                            Icons.edit_location_alt_rounded,
+                            size: 16,
+                          ),
+                          label: const Text('Bearbeiten'),
+                        )
+                      : null,
                 ),
               ],
             ),
           ),
-          if (!useLive) ...<Widget>[
-            const SizedBox(height: AppSpacing.md),
-            OutlinedButton.icon(
-              onPressed: () => _openManualLocationSheet(context),
-              icon: const Icon(Icons.edit_location_alt_rounded, size: 16),
-              label: const Text('Koordinaten bearbeiten'),
-            ),
-          ],
-          const _SettingsDivider(),
-          _SettingsGroup(
-            label: 'Berechnungsmethode',
-            child: DropdownButtonFormField<int>(
-              key: ValueKey<int>(_controller.settings.method),
-              initialValue: _controller.settings.method,
-              decoration: const InputDecoration(
-                labelText: 'Calculation method',
-              ),
-              dropdownColor: AppColors.surfaceStrong,
-              isExpanded: true,
-              items: _controller.availableMethods
-                  .map(
-                    (int method) => DropdownMenuItem<int>(
-                      value: method,
-                      child: Text(
-                        '$method · ${methodLabels[method] ?? ''}',
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
+          const _SettingsPanelDivider(),
+          _SettingsSection(
+            icon: Icons.tune_rounded,
+            title: 'Berechnung',
+            trailing: _controller.settings.useAutoMethod
+                ? _SettingsStatusBadge(
+                    label: 'Auto',
+                    color: phaseStyle.accentSoft,
                   )
-                  .toList(),
-              onChanged: (int? value) {
-                if (value != null) {
-                  unawaited(_controller.updateMethod(value));
-                }
-              },
-            ),
-          ),
-          const _SettingsDivider(),
-          _SettingsGroup(
-            label: 'Rechtsschule (Asr)',
-            child: Wrap(
-              spacing: AppSpacing.sm,
-              runSpacing: AppSpacing.sm,
-              children: _controller.availableSchools.map((int school) {
-                return ChoiceChip(
-                  label: Text(schoolLabels[school] ?? school.toString()),
-                  selected: _controller.settings.school == school,
-                  onSelected: (_) =>
-                      unawaited(_controller.updateSchool(school)),
-                );
-              }).toList(),
-            ),
-          ),
-          const _SettingsDivider(),
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(AppSpacing.lg),
-            decoration: BoxDecoration(
-              color: AppColors.surfaceStrong,
-              borderRadius: BorderRadius.circular(AppRadius.lg),
-              border: Border.all(color: AppColors.borderSubtle),
-            ),
-            child: Row(
+                : null,
+            child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
-                Icon(
-                  Icons.location_searching_rounded,
-                  color: phaseStyle.accentSoft,
-                  size: 18,
-                ),
-                const SizedBox(width: AppSpacing.md),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: <Widget>[
-                      Text(
-                        'Aktive Koordinaten',
-                        style:
-                            Theme.of(context).textTheme.labelMedium?.copyWith(
-                                  color: AppColors.textSecondary,
-                                ),
-                      ),
-                      const SizedBox(height: AppSpacing.xs),
-                      Text(
-                        _formatCoordinates(),
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              color: AppColors.textPrimary,
-                            ),
-                      ),
-                    ],
+                DropdownButtonFormField<int>(
+                  key: ValueKey<int>(_controller.settings.method),
+                  initialValue: _controller.settings.method,
+                  decoration: const InputDecoration(
+                    labelText: 'Berechnungsmethode',
                   ),
+                  isExpanded: true,
+                  items: _controller.availableMethods
+                      .map(
+                        (int method) => DropdownMenuItem<int>(
+                          value: method,
+                          child: Text(
+                            '$method · ${methodLabels[method] ?? ''}',
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      )
+                      .toList(),
+                  onChanged: _controller.settings.useAutoMethod
+                      ? null
+                      : (int? value) {
+                          if (value != null) {
+                            unawaited(_controller.updateMethod(value));
+                          }
+                        },
+                ),
+                const SizedBox(height: AppSpacing.md),
+                _SettingsSwitchRow(
+                  title: 'Auto nach Region',
+                  subtitle: _controller.settings.useAutoMethod
+                      ? 'Land und Zeitzone wählen die Methode automatisch.'
+                      : 'Deine manuelle Methode bleibt aktiv.',
+                  value: _controller.settings.useAutoMethod,
+                  onChanged: (bool value) {
+                    unawaited(_controller.setUseAutoMethod(value));
+                  },
+                ),
+              ],
+            ),
+          ),
+          const _SettingsPanelDivider(),
+          _SettingsSection(
+            icon: Icons.school_outlined,
+            title: 'Asr-Regel',
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                SegmentedSetting<int>(
+                  value: _controller.settings.school,
+                  accentColor: phaseStyle.accentSoft,
+                  onChanged: (int school) {
+                    unawaited(_controller.updateSchool(school));
+                  },
+                  options: _controller.availableSchools
+                      .map(
+                        (int school) => SegmentedSettingOption<int>(
+                          value: school,
+                          label: schoolLabels[school] ?? school.toString(),
+                        ),
+                      )
+                      .toList(growable: false),
+                ),
+                const SizedBox(height: AppSpacing.sm),
+                Text(
+                  'Shafi ist Standard, Hanafi verschiebt Asr etwas später.',
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
+              ],
+            ),
+          ),
+          const _SettingsPanelDivider(),
+          _SettingsSection(
+            icon: Icons.palette_outlined,
+            title: 'Darstellung',
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                SegmentedSetting<AppThemePreference>(
+                  value: _controller.settings.themePreference,
+                  accentColor: phaseStyle.accentSoft,
+                  onChanged: (AppThemePreference value) {
+                    unawaited(_controller.updateThemePreference(value));
+                  },
+                  options: const <SegmentedSettingOption<AppThemePreference>>[
+                    SegmentedSettingOption<AppThemePreference>(
+                      value: AppThemePreference.light,
+                      label: 'Hell',
+                    ),
+                    SegmentedSettingOption<AppThemePreference>(
+                      value: AppThemePreference.dark,
+                      label: 'Dunkel',
+                    ),
+                    SegmentedSettingOption<AppThemePreference>(
+                      value: AppThemePreference.prayerBased,
+                      label: 'Gebetszeit',
+                      semanticLabel: 'Automatisch nach Gebetszeit',
+                    ),
+                  ],
+                ),
+                const SizedBox(height: AppSpacing.sm),
+                Text(
+                  'Gebetszeit ändert das Theme nur bei Start, Refresh oder Resume.',
+                  style: Theme.of(context).textTheme.bodySmall,
                 ),
               ],
             ),
@@ -484,6 +526,7 @@ class _PrayerHomePageState extends State<PrayerHomePage>
   }
 
   Future<void> _openManualLocationSheet(BuildContext context) async {
+    final AppPalette palette = AppPalette.of(context);
     final double seedLat =
         _controller.response?.latitude ?? _controller.settings.manualLatitude;
     final double seedLon =
@@ -507,7 +550,7 @@ class _PrayerHomePageState extends State<PrayerHomePage>
     await showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
-      backgroundColor: AppColors.surface,
+      backgroundColor: palette.surface,
       shape: const RoundedRectangleBorder(
         borderRadius:
             BorderRadius.vertical(top: Radius.circular(AppRadius.xxl)),
@@ -516,6 +559,7 @@ class _PrayerHomePageState extends State<PrayerHomePage>
         return StatefulBuilder(
           builder: (BuildContext modalContext, StateSetter setModalState) {
             final EdgeInsets insets = MediaQuery.of(modalContext).viewInsets;
+            final AppPalette modalPalette = AppPalette.of(modalContext);
             return Padding(
               padding: EdgeInsets.fromLTRB(
                 AppSpacing.xl,
@@ -532,7 +576,7 @@ class _PrayerHomePageState extends State<PrayerHomePage>
                       width: 40,
                       height: 4,
                       decoration: BoxDecoration(
-                        color: AppColors.border,
+                        color: modalPalette.border,
                         borderRadius: BorderRadius.circular(AppRadius.full),
                       ),
                     ),
@@ -546,7 +590,7 @@ class _PrayerHomePageState extends State<PrayerHomePage>
                   Text(
                     'Fallback, wenn GPS oder Berechtigungen fehlen.',
                     style: Theme.of(modalContext).textTheme.bodySmall?.copyWith(
-                          color: AppColors.textSecondary,
+                          color: modalPalette.textSecondary,
                         ),
                   ),
                   const SizedBox(height: AppSpacing.xl),
@@ -592,7 +636,7 @@ class _PrayerHomePageState extends State<PrayerHomePage>
                       inlineError!,
                       style:
                           Theme.of(modalContext).textTheme.bodySmall?.copyWith(
-                                color: AppColors.error,
+                                color: modalPalette.error,
                               ),
                     ),
                   ],
@@ -688,9 +732,18 @@ class _PrayerHomePageState extends State<PrayerHomePage>
 
   String _formatCoordinates() {
     final data = _controller.response;
-    if (data != null) {
+    if (data != null && _controller.settings.useDeviceLocation) {
       return '${data.latitude.toStringAsFixed(4)}, ${data.longitude.toStringAsFixed(4)}';
     }
+
+    if (data != null &&
+        !_controller.settings.useDeviceLocation &&
+        (data.latitude - _controller.settings.manualLatitude).abs() <= 0.0001 &&
+        (data.longitude - _controller.settings.manualLongitude).abs() <=
+            0.0001) {
+      return '${data.latitude.toStringAsFixed(4)}, ${data.longitude.toStringAsFixed(4)}';
+    }
+
     return '${_controller.settings.manualLatitude.toStringAsFixed(4)}, ${_controller.settings.manualLongitude.toStringAsFixed(4)}';
   }
 
@@ -699,41 +752,233 @@ class _PrayerHomePageState extends State<PrayerHomePage>
   }
 }
 
-class _SettingsGroup extends StatelessWidget {
-  const _SettingsGroup({
-    required this.label,
+class _SettingsSection extends StatelessWidget {
+  const _SettingsSection({
+    required this.icon,
+    required this.title,
     required this.child,
+    this.trailing,
   });
 
-  final String label;
+  final IconData icon;
+  final String title;
   final Widget child;
+  final Widget? trailing;
 
   @override
   Widget build(BuildContext context) {
+    final AppPalette palette = AppPalette.of(context);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
-        Text(
-          label.toUpperCase(),
-          style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                color: AppColors.textTertiary,
+        Row(
+          children: <Widget>[
+            Icon(
+              icon,
+              size: 16,
+              color: palette.primarySoft,
+            ),
+            const SizedBox(width: AppSpacing.sm),
+            Expanded(
+              child: Text(
+                title,
+                style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                      color: palette.textPrimary,
+                      fontWeight: FontWeight.w700,
+                    ),
               ),
+            ),
+            if (trailing != null) ...<Widget>[
+              const SizedBox(width: AppSpacing.md),
+              trailing!,
+            ],
+          ],
         ),
-        const SizedBox(height: AppSpacing.sm),
+        const SizedBox(height: AppSpacing.md),
         child,
       ],
     );
   }
 }
 
-class _SettingsDivider extends StatelessWidget {
-  const _SettingsDivider();
+class _SettingsSummaryRow extends StatelessWidget {
+  const _SettingsSummaryRow({
+    required this.icon,
+    required this.label,
+    required this.value,
+    required this.meta,
+    this.action,
+  });
+
+  final IconData icon;
+  final String label;
+  final String value;
+  final String meta;
+  final Widget? action;
 
   @override
   Widget build(BuildContext context) {
-    return const Padding(
-      padding: EdgeInsets.symmetric(vertical: AppSpacing.lg),
-      child: Divider(height: 1),
+    final AppPalette palette = AppPalette.of(context);
+
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: <Widget>[
+        Container(
+          width: 34,
+          height: 34,
+          decoration: BoxDecoration(
+            color: palette.surfaceStrong,
+            borderRadius: BorderRadius.circular(AppRadius.md),
+            border: Border.all(color: palette.borderSubtle),
+          ),
+          alignment: Alignment.center,
+          child: Icon(
+            icon,
+            size: 16,
+            color: palette.primarySoft,
+          ),
+        ),
+        const SizedBox(width: AppSpacing.md),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              Text(
+                label,
+                style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                      color: palette.textSecondary,
+                    ),
+              ),
+              const SizedBox(height: AppSpacing.xs),
+              Text(
+                value,
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: palette.textPrimary,
+                    ),
+              ),
+              const SizedBox(height: AppSpacing.xs),
+              Text(
+                meta,
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: palette.textTertiary,
+                    ),
+              ),
+            ],
+          ),
+        ),
+        if (action != null) ...<Widget>[
+          const SizedBox(width: AppSpacing.md),
+          action!,
+        ],
+      ],
+    );
+  }
+}
+
+class _SettingsSwitchRow extends StatelessWidget {
+  const _SettingsSwitchRow({
+    required this.title,
+    required this.subtitle,
+    required this.value,
+    required this.onChanged,
+  });
+
+  final String title;
+  final String subtitle;
+  final bool value;
+  final ValueChanged<bool> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final AppPalette palette = AppPalette.of(context);
+
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: <Widget>[
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              Text(
+                title,
+                style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                      color: palette.textPrimary,
+                      fontWeight: FontWeight.w700,
+                    ),
+              ),
+              const SizedBox(height: AppSpacing.xs),
+              Text(
+                subtitle,
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: palette.textSecondary,
+                    ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(width: AppSpacing.md),
+        Switch.adaptive(
+          value: value,
+          onChanged: onChanged,
+          activeThumbColor: palette.primarySoft,
+          activeTrackColor: AppColors.overlay(
+            palette.primarySoft,
+            palette.surfaceStrong,
+            0.38,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _SettingsPanelDivider extends StatelessWidget {
+  const _SettingsPanelDivider();
+
+  @override
+  Widget build(BuildContext context) {
+    final AppPalette palette = AppPalette.of(context);
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: AppSpacing.lg),
+      child: Divider(
+        height: 1,
+        color: palette.borderSubtle,
+      ),
+    );
+  }
+}
+
+class _SettingsStatusBadge extends StatelessWidget {
+  const _SettingsStatusBadge({
+    required this.label,
+    required this.color,
+  });
+
+  final String label;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    final AppPalette palette = AppPalette.of(context);
+
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.md,
+        vertical: AppSpacing.sm,
+      ),
+      decoration: BoxDecoration(
+        color: AppColors.overlay(color, palette.surfaceStrong, 0.12),
+        borderRadius: BorderRadius.circular(AppRadius.full),
+        border: Border.all(color: color.withValues(alpha: 0.24)),
+      ),
+      child: Text(
+        label,
+        style: Theme.of(context).textTheme.labelMedium?.copyWith(
+              color: color,
+            ),
+      ),
     );
   }
 }

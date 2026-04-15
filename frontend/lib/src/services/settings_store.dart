@@ -1,3 +1,4 @@
+import 'package:frontend/src/core/app_theme_preference.dart';
 import 'package:frontend/src/core/prayer_constants.dart';
 import 'package:frontend/src/models/app_settings.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -5,6 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 class SettingsStore {
   static const String _methodKey = 'settings.method';
   static const String _schoolKey = 'settings.school';
+  static const String _themePreferenceKey = 'settings.themePreference';
   static const String _useAutoMethodKey = 'settings.useAutoMethod';
   static const String _useDeviceLocationKey = 'settings.useDeviceLocation';
   static const String _manualLatitudeKey = 'settings.manualLatitude';
@@ -16,6 +18,9 @@ class SettingsStore {
 
     final int method = prefs.getInt(_methodKey) ?? AppSettings.defaults.method;
     final int school = prefs.getInt(_schoolKey) ?? AppSettings.defaults.school;
+    final AppThemePreference themePreference = appThemePreferenceFromStorage(
+      prefs.getString(_themePreferenceKey),
+    );
     final bool hasStoredMethod = prefs.containsKey(_methodKey);
     final bool useAutoMethod = prefs.containsKey(_useAutoMethodKey)
         ? (prefs.getBool(_useAutoMethodKey) ??
@@ -38,6 +43,7 @@ class SettingsStore {
       school: schoolLabels.containsKey(school)
           ? school
           : AppSettings.defaults.school,
+      themePreference: themePreference,
       useAutoMethod: useAutoMethod,
       useDeviceLocation: useDeviceLocation,
       manualLatitude: manualLatitude,
@@ -50,6 +56,10 @@ class SettingsStore {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     await prefs.setInt(_methodKey, settings.method);
     await prefs.setInt(_schoolKey, settings.school);
+    await prefs.setString(
+      _themePreferenceKey,
+      settings.themePreference.storageValue,
+    );
     await prefs.setBool(_useAutoMethodKey, settings.useAutoMethod);
     await prefs.setBool(_useDeviceLocationKey, settings.useDeviceLocation);
     await prefs.setDouble(_manualLatitudeKey, settings.manualLatitude);

@@ -16,6 +16,8 @@ class HomeAppBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final AppPalette palette = AppPalette.of(context);
+
     return SizedBox(
       height: 48,
       child: Row(
@@ -26,7 +28,7 @@ class HomeAppBar extends StatelessWidget {
             decoration: BoxDecoration(
               color: AppColors.overlay(
                 phaseStyle.accent,
-                AppColors.surfaceRaised,
+                palette.surfaceRaised,
                 0.14,
               ),
               borderRadius: BorderRadius.circular(AppRadius.md),
@@ -48,6 +50,7 @@ class HomeAppBar extends StatelessWidget {
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                    color: palette.textPrimary,
                     fontSize: 19,
                     letterSpacing: -0.2,
                   ),
@@ -61,7 +64,7 @@ class HomeAppBar extends StatelessWidget {
               minimumSize: const Size(40, 40),
               maximumSize: const Size(40, 40),
               padding: EdgeInsets.zero,
-              backgroundColor: AppColors.surfaceRaised,
+              backgroundColor: palette.surfaceRaised,
               side: BorderSide(
                 color: phaseStyle.accent.withValues(alpha: 0.16),
               ),

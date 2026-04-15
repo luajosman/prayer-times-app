@@ -26,13 +26,14 @@ class StatusBanner extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final AppPalette palette = AppPalette.of(context);
     final Color accent =
-        tone == StatusBannerTone.error ? AppColors.error : AppColors.info;
+        tone == StatusBannerTone.error ? palette.error : palette.info;
 
     return Container(
       padding: const EdgeInsets.all(AppSpacing.lg),
       decoration: BoxDecoration(
-        color: AppColors.overlay(accent, AppColors.surfaceRaised, 0.10),
+        color: AppColors.overlay(accent, palette.surfaceRaised, 0.10),
         borderRadius: BorderRadius.circular(AppRadius.lg),
         border: Border.all(color: accent.withValues(alpha: 0.34)),
       ),
@@ -43,7 +44,7 @@ class StatusBanner extends StatelessWidget {
             width: 36,
             height: 36,
             decoration: BoxDecoration(
-              color: AppColors.overlay(accent, AppColors.surface, 0.18),
+              color: AppColors.overlay(accent, palette.surface, 0.18),
               borderRadius: BorderRadius.circular(AppRadius.md),
             ),
             alignment: Alignment.center,
@@ -57,7 +58,7 @@ class StatusBanner extends StatelessWidget {
                 Text(
                   title,
                   style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                        color: AppColors.textPrimary,
+                        color: palette.textPrimary,
                         fontWeight: FontWeight.w700,
                       ),
                 ),
@@ -65,7 +66,7 @@ class StatusBanner extends StatelessWidget {
                 Text(
                   message,
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: AppColors.textSecondary,
+                        color: palette.textSecondary,
                       ),
                 ),
                 if (actionLabel != null && onAction != null) ...<Widget>[

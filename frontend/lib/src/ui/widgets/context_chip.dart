@@ -19,14 +19,15 @@ class ContextChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final AppPalette palette = AppPalette.of(context);
     final Color background = emphasized
-        ? AppColors.overlay(accentColor, AppColors.surfaceRaised, 0.12)
-        : AppColors.surfaceRaised;
+        ? AppColors.overlay(accentColor, palette.surfaceRaised, 0.12)
+        : palette.surfaceRaised;
     final Color borderColor =
-        emphasized ? accentColor.withValues(alpha: 0.28) : AppColors.border;
-    final Color iconColor = emphasized ? accentColor : AppColors.primarySoft;
+        emphasized ? accentColor.withValues(alpha: 0.28) : palette.border;
+    final Color iconColor = emphasized ? accentColor : palette.primarySoft;
     final Color textColor =
-        emphasized ? AppColors.textPrimary : const Color(0xFFB7C3D3);
+        emphasized ? palette.textPrimary : palette.textSecondary;
 
     return ConstrainedBox(
       constraints: BoxConstraints(maxWidth: compact ? 280 : 340),
