@@ -6,7 +6,9 @@ Salah Navigator combines daily prayer times, next-prayer focus, Qibla orientatio
 
 ## Visual Preview
 
-![Salah Navigator home screen](./screenshots/DarkThemeHero.png)
+<p align="center">
+  <img src="./screenshots/DarkThemeHero.png" alt="Salah Navigator home screen" width="360" />
+</p>
 
 *Current home screen preview with next-prayer emphasis, contextual location metadata, daily timetable, and Qibla access. Some UI labels in the current build are still localized in German.*
 
@@ -131,7 +133,9 @@ The UX philosophy behind the project is deliberately restrained.
 - Resilient fallbacks: unavailable maps, missing compass data, denied location permissions, and backend failures are handled explicitly.
 - Product hierarchy first: key user questions are answered early, especially on the home screen.
 
-![Salah Navigator light theme](./screenshots/LightThemeHero.png)
+<p align="center">
+  <img src="./screenshots/LightThemeHero.png" alt="Salah Navigator light theme" width="360" />
+</p>
 
 *Light appearance mode preview. The app keeps the same hierarchy and structure while adapting surfaces, accents, and contrast for brighter environments.*
 
@@ -151,7 +155,9 @@ The hero block, trust strip, prayer list, and Qibla entry are arranged to keep t
 
 The Qibla card is treated as an orientation module, not a sensor dashboard. The primary focus is the direction toward the Kaaba, followed by alignment quality and action options.
 
-![Qibla compass](./screenshots/QuiblaCompass.png)
+<p align="center">
+  <img src="./screenshots/QuiblaCompass.png" alt="Qibla compass" width="340" />
+</p>
 
 *Qibla compass screen with directional emphasis, alignment status, and direct access to map-based guidance.*
 
@@ -159,7 +165,9 @@ The Qibla card is treated as an orientation module, not a sensor dashboard. The 
 
 The route view gives users a spatial understanding of the direction instead of only a compass bearing. This is especially useful when users want to verify direction context visually or continue into an external maps app.
 
-![Qibla route map](./screenshots/QuiblaMap.png)
+<p align="center">
+  <img src="./screenshots/QuiblaMap.png" alt="Qibla route map" width="340" />
+</p>
 
 *In-app Qibla map showing the geodesic route to the Kaaba, with an external Google Maps fallback.*
 
@@ -167,7 +175,9 @@ The route view gives users a spatial understanding of the direction instead of o
 
 The settings area groups the most important decision points without turning into a developer panel. Users can switch between live and manual location, choose a calculation method, toggle region-aware recommendations, select the Asr rule, and choose the appearance mode.
 
-![Settings screen](./screenshots/Settings.png)
+<p align="center">
+  <img src="./screenshots/Settings.png" alt="Settings screen" width="340" />
+</p>
 
 *Settings surface for location mode, calculation method, school, and appearance mode.*
 
