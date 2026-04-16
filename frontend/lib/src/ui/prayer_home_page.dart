@@ -102,9 +102,9 @@ class _PrayerHomePageState extends State<PrayerHomePage>
                 end: Alignment.bottomCenter,
                 colors: <Color>[
                   AppColors.overlay(
-                    phaseStyle.tint,
+                    phaseStyle.pageTint(palette),
                     palette.background,
-                    0.06,
+                    palette.isDark ? 0.06 : 0.05,
                   ),
                   palette.background,
                 ],
@@ -175,7 +175,7 @@ class _PrayerHomePageState extends State<PrayerHomePage>
                         SectionHeader(
                           label: 'Gebetszeiten',
                           trailing: _controller.response?.date,
-                          accentColor: phaseStyle.sectionAccent,
+                          accentColor: phaseStyle.sectionColor(palette),
                         ),
                         const SizedBox(height: AppSpacing.md),
                         if (_controller.isLoading)
@@ -192,7 +192,7 @@ class _PrayerHomePageState extends State<PrayerHomePage>
                         const SizedBox(height: AppSpacing.xxl),
                         SectionHeader(
                           label: 'Einstellungen',
-                          accentColor: phaseStyle.sectionAccent,
+                          accentColor: phaseStyle.sectionColor(palette),
                         ),
                         const SizedBox(height: AppSpacing.md),
                         _buildAnimated(
@@ -344,7 +344,7 @@ class _PrayerHomePageState extends State<PrayerHomePage>
         color: palette.surfaceRaised,
         borderRadius: BorderRadius.circular(AppRadius.xl),
         border: Border.all(color: palette.border),
-        boxShadow: AppShadows.panel,
+        boxShadow: AppShadows.panel(palette),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -356,14 +356,14 @@ class _PrayerHomePageState extends State<PrayerHomePage>
             title: 'Standort',
             trailing: _SettingsStatusBadge(
               label: useLive ? 'Live' : 'Manuell',
-              color: phaseStyle.accentSoft,
+              color: phaseStyle.emphasisColor(palette),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
                 SegmentedSetting<bool>(
                   value: useLive,
-                  accentColor: phaseStyle.accentSoft,
+                  accentColor: phaseStyle.emphasisColor(palette),
                   onChanged: (bool value) {
                     unawaited(_controller.setUseDeviceLocation(value));
                   },
@@ -407,7 +407,7 @@ class _PrayerHomePageState extends State<PrayerHomePage>
             trailing: _controller.settings.useAutoMethod
                 ? _SettingsStatusBadge(
                     label: 'Auto',
-                    color: phaseStyle.accentSoft,
+                    color: phaseStyle.emphasisColor(palette),
                   )
                 : null,
             child: Column(
@@ -462,7 +462,7 @@ class _PrayerHomePageState extends State<PrayerHomePage>
               children: <Widget>[
                 SegmentedSetting<int>(
                   value: _controller.settings.school,
-                  accentColor: phaseStyle.accentSoft,
+                  accentColor: phaseStyle.emphasisColor(palette),
                   onChanged: (int school) {
                     unawaited(_controller.updateSchool(school));
                   },
@@ -492,7 +492,7 @@ class _PrayerHomePageState extends State<PrayerHomePage>
               children: <Widget>[
                 SegmentedSetting<AppThemePreference>(
                   value: _controller.settings.themePreference,
-                  accentColor: phaseStyle.accentSoft,
+                  accentColor: phaseStyle.emphasisColor(palette),
                   onChanged: (AppThemePreference value) {
                     unawaited(_controller.updateThemePreference(value));
                   },

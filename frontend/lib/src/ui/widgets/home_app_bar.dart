@@ -27,20 +27,22 @@ class HomeAppBar extends StatelessWidget {
             height: 38,
             decoration: BoxDecoration(
               color: AppColors.overlay(
-                phaseStyle.accent,
+                phaseStyle.emphasisColor(palette),
                 palette.surfaceRaised,
-                0.14,
+                palette.isDark ? 0.14 : 0.10,
               ),
               borderRadius: BorderRadius.circular(AppRadius.md),
               border: Border.all(
-                color: phaseStyle.accent.withValues(alpha: 0.24),
+                color: phaseStyle.emphasisColor(palette).withValues(
+                      alpha: palette.isDark ? 0.24 : 0.18,
+                    ),
               ),
             ),
             alignment: Alignment.center,
             child: Icon(
               Icons.explore_rounded,
               size: 19,
-              color: phaseStyle.accentSoft,
+              color: phaseStyle.emphasisColor(palette),
             ),
           ),
           const SizedBox(width: AppSpacing.md),
@@ -66,7 +68,9 @@ class HomeAppBar extends StatelessWidget {
               padding: EdgeInsets.zero,
               backgroundColor: palette.surfaceRaised,
               side: BorderSide(
-                color: phaseStyle.accent.withValues(alpha: 0.16),
+                color: phaseStyle.emphasisColor(palette).withValues(
+                      alpha: palette.isDark ? 0.16 : 0.12,
+                    ),
               ),
             ),
             icon: AnimatedRotation(

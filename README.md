@@ -1,235 +1,384 @@
-# Salah Navigator 🧭
+# Salah Navigator
 
-A location-aware prayer companion built with **Flutter + FastAPI**.
+A location-aware prayer companion built with Flutter and FastAPI.
 
-It gives you daily prayer times, a Qibla compass, and a world-map Qibla route in one app. The goal is simple: keep the UX clean while still exposing the details that matter for trust (`method`, `madhhab`, coordinates, timezone).
+Salah Navigator combines daily prayer times, next-prayer focus, Qibla orientation, and transparent calculation controls in one calm mobile experience. The project is designed around a simple product principle: users should be able to trust what the app shows, why it shows it, and which context the result is based on.
 
-## Why This Exists
+## Visual Preview
 
-Prayer apps usually optimize for one side only:
+![Salah Navigator home screen](./screenshots/DarkThemeHero.png)
 
-- Great visuals, weak transparency
-- Strong logic, rough UX
+*Current home screen preview with next-prayer emphasis, contextual location metadata, daily timetable, and Qibla access. Some UI labels in the current build are still localized in German.*
 
-Salah Navigator aims to bridge both:
+## What Salah Navigator Is
 
-- Explicit calculation controls
-- Visible location and timezone context
-- Resilient fallback behavior
-- Clear error states instead of silent failures
+Salah Navigator is a mobile prayer companion for users who want more than a decorative prayer times screen. It brings together:
 
-## What You Get
+- location-aware daily prayer times
+- explicit calculation method and school handling
+- a next-prayer hero with live countdown
+- a Qibla compass driven by device heading and computed bearing
+- a geodesic Qibla route map to the Kaaba
+- visible context such as location, timezone, coordinates, method, and school
 
-- Live prayer times from your current location
-- Manual coordinate mode with persisted settings
-- Calculation method selector (`method` for AlAdhan)
-- Madhhab selector (`Shafi` / `Hanafi`, affects Asr)
-- Next-prayer highlighting and live countdown
-- Qibla compass using device heading + computed bearing
-- Qibla line map with geodesic route to the Kaaba
-- Open-in-Google-Maps with robust Android/web fallback
+The project is intentionally positioned between product design and engineering rigor. It is not only about showing prayer times; it is about showing them in a way that feels clear, precise, trustworthy, and understandable.
 
-## Roadmap
+## Why This Project Exists
+
+Many prayer apps optimize for one side of the experience but not the whole system.
+
+- Some look polished, but hide the calculation context that determines the result.
+- Others expose technical controls, but feel rough, overloaded, or difficult to trust at a glance.
+
+Salah Navigator exists to bridge that gap.
+
+The project treats prayer times and Qibla not as generic dashboard data, but as trust-sensitive information. Location, timezone, calculation method, and Asr rule materially affect what the user sees. Making those dependencies visible is part of the product value, not a developer-only detail.
+
+## Key Features
+
+### Daily prayer times
+
+- Fetches a daily timetable for the active coordinates through a FastAPI backend.
+- Displays the canonical prayer sequence, including sunrise as a contextual transition point.
+- Keeps the timetable visible alongside its calculation basis.
+
+### Next prayer and live countdown
+
+- Highlights the next upcoming prayer in a dedicated hero area.
+- Shows the prayer name, exact time, and remaining time.
+- Uses a stable visual system with subtle phase-based accents instead of aggressive theme hopping.
+
+### Location-aware calculation
+
+- Supports live GPS/device location.
+- Surfaces resolved location context and timezone in the UI.
+- Uses backend reverse geocoding to attach a readable location label to the active coordinates.
+
+### Manual location mode
+
+- Allows manual coordinates and an optional label.
+- Persists manual coordinates locally.
+- Includes a repair path for cases where a city-like manual label exists but stored coordinates are still fallback defaults.
+
+### Calculation controls
+
+- Supports AlAdhan calculation methods.
+- Includes an auto-by-region mode in the app settings.
+- Lets the user explicitly override the method when needed.
+
+### Madhhab / Asr handling
+
+- Supports `Shafi` and `Hanafi`.
+- Treats school selection as a visible setting rather than a hidden assumption.
+
+### Qibla compass
+
+- Computes the Qibla bearing to the Kaaba from the active coordinates.
+- Uses device heading data from the compass stream when available.
+- Communicates alignment state as a focused guidance module instead of a technical dashboard.
+
+### Qibla map and route view
+
+- Renders a geodesic route toward the Kaaba using Flutter Map and OpenStreetMap tiles.
+- Splits long-distance polylines at dateline jumps for visual stability.
+- Offers an external Google Maps handoff as a practical fallback.
+
+### Resilient fallback behavior
+
+- Handles backend timeouts and network failures with explicit UI feedback.
+- Falls back to clipboard copy when Google Maps cannot be opened.
+- Keeps reverse geocoding best-effort so prayer times can still load even if location labels fail.
+
+### Appearance modes
+
+- Supports Light, Dark, and prayer-based appearance modes.
+- Prayer-based mode follows the currently resolved prayer phase when the app recomputes state, for example on app start, manual refresh, or resume.
+
+## For Non-Technical Stakeholders
+
+This project is meaningful even if you never read the code.
+
+At a product level, Salah Navigator serves a trust-sensitive daily need. A prayer companion is not just a schedule viewer. Users rely on it for time, direction, and religious context. If the app silently uses the wrong location, timezone, or calculation method, the problem is not cosmetic; it directly affects whether the output feels reliable.
+
+That is why the app emphasizes visible context:
+
+- where the schedule comes from
+- which location is active
+- which timezone is applied
+- which method and school shape the timetable
+
+This also makes the project a strong UX case study. It shows how a product can stay calm and visually refined while still exposing the logic behind the result. Instead of hiding complexity, it organizes it so users can understand it without feeling overwhelmed.
+
+From a portfolio perspective, the project is notable because it combines:
+
+- mobile UI design
+- product thinking
+- location-aware behavior
+- sensor integration
+- mapping
+- backend orchestration
+- error handling and fallback design
+
+In short, Salah Navigator is not only an engineering exercise. It is a practical example of how to design trust into a real user workflow.
+
+## User Experience and Design Principles
+
+The UX philosophy behind the project is deliberately restrained.
+
+- Trust through visible context: important calculation dependencies are surfaced instead of buried.
+- Clarity over decoration: the screen prioritizes next prayer, exact time, and context before secondary details.
+- Calm interaction design: the interface uses stable visual structure with subtle prayer-phase accents rather than dramatic full-theme shifts.
+- Resilient fallbacks: unavailable maps, missing compass data, denied location permissions, and backend failures are handled explicitly.
+- Product hierarchy first: key user questions are answered early, especially on the home screen.
+
+![Salah Navigator light theme](./screenshots/LightThemeHero.png)
+
+*Light appearance mode preview. The app keeps the same hierarchy and structure while adapting surfaces, accents, and contrast for brighter environments.*
+
+## Screens and Walkthrough
+
+### Home and prayer times
+
+The home screen is designed to answer three questions immediately:
+
+1. What is the next prayer?
+2. When exactly is it?
+3. Which location and calculation context is this based on?
+
+The hero block, trust strip, prayer list, and Qibla entry are arranged to keep the screen practical rather than ornamental. The home preview is shown near the top of this README.
+
+### Qibla compass
+
+The Qibla card is treated as an orientation module, not a sensor dashboard. The primary focus is the direction toward the Kaaba, followed by alignment quality and action options.
+
+![Qibla compass](./screenshots/QuiblaCompass.png)
+
+*Qibla compass screen with directional emphasis, alignment status, and direct access to map-based guidance.*
+
+### Qibla route map
+
+The route view gives users a spatial understanding of the direction instead of only a compass bearing. This is especially useful when users want to verify direction context visually or continue into an external maps app.
+
+![Qibla route map](./screenshots/QuiblaMap.png)
+
+*In-app Qibla map showing the geodesic route to the Kaaba, with an external Google Maps fallback.*
+
+### Settings and transparency controls
+
+The settings area groups the most important decision points without turning into a developer panel. Users can switch between live and manual location, choose a calculation method, toggle region-aware recommendations, select the Asr rule, and choose the appearance mode.
+
+![Settings screen](./screenshots/Settings.png)
+
+*Settings surface for location mode, calculation method, school, and appearance mode.*
+
+## Technical Architecture
+
+### Stack
+
+- Frontend: Flutter
+- Backend: FastAPI
+- Upstream prayer data: AlAdhan Timings API
+- Upstream geocoding: Nominatim / OpenStreetMap
+- Local storage: SharedPreferences
+- Mapping: Flutter Map + OpenStreetMap tiles
+- Device capabilities: location, compass, external map launches
+
+### Frontend architecture
+
+The active Flutter app lives primarily under `frontend/lib/src`.
+
+- `PrayerTimesController` orchestrates loading, refreshing, location resolution, prayer-phase resolution, next-prayer state, and settings persistence.
+- `PrayerApiClient` isolates HTTP communication with the backend.
+- `SettingsStore` persists method, school, appearance mode, location mode, and manual coordinates.
+- Reusable UI widgets handle the home hero, chips, prayer rows, section headers, Qibla card, and map page.
+- A custom theme and token system supports Dark, Light, and prayer-based appearance behavior.
+
+### Backend architecture
+
+The backend acts as a stable boundary between the app and external providers.
+
+- `/api/v1/prayer-times` fetches timetable data from AlAdhan and enriches the response with best-effort reverse geocoding.
+- `/api/v1/geocode` resolves user-entered place text to coordinates.
+- Pydantic schemas define the response contracts.
+- CORS is open in local development to simplify testing from mobile and web clients.
+
+### Data flow
 
 ```mermaid
 flowchart LR
-  A["Horizon 1: In Progress"] --> B["Horizon 2: Next Up"] --> C["Horizon 3: Future Ideas"]
-```
-
-### 🚧 Horizon 1: In Progress
-
-- Improve diagnostic UX for location/timezone mismatches
-- Refine Qibla map readability on small devices
-- Improve fallback behavior when external maps cannot open
-
-### ⏭️ Horizon 2: Next Up
-
-- Local prayer notifications with per-prayer toggles
-- Country/city presets for quicker setup
-- Localization polish (German/English flow consistency)
-
-### 🔭 Horizon 3: Future Ideas
-
-- Smarter method recommendations by region
-- Nearby mosque discovery mode
-- Offline cache for last successful timetable
-- Companion integration concepts (wearables/widgets)
-
-> Roadmap items are planned targets and can be reprioritized.
-
-## Tech Stack
-
-### Frontend
-
-- Flutter (Material)
-- `ChangeNotifier` controller layer
-- `dio` for API calls
-- `geolocator` for device position
-- `geocoding` for reverse labels
-- `flutter_compass` for heading
-- `flutter_map` + OpenStreetMap tiles for in-app route view
-- `shared_preferences` for local settings
-- `url_launcher` for external maps
-
-### Backend
-
-- FastAPI
-- `httpx` upstream client
-- `pydantic` schemas
-- AlAdhan Timings API (`/v1/timings`)
-- Nominatim geocoding (`openstreetmap.org`)
-
-## Architecture
-
-```mermaid
-flowchart LR
-  A["Flutter App"] -->|"GET /api/v1/prayer-times"| B["FastAPI"]
+  A["Flutter app"] -->|"GET /api/v1/prayer-times"| B["FastAPI backend"]
   A -->|"GET /api/v1/geocode"| B
-  B -->|"HTTPS"| C["AlAdhan API"]
-  B -->|"HTTPS"| D["Nominatim API"]
+  B -->|"Timetable lookup"| C["AlAdhan API"]
+  B -->|"Geocoding / reverse geocoding"| D["Nominatim"]
   A --> E["SharedPreferences"]
   A --> F["Geolocator"]
-  A --> G["Flutter Compass"]
+  A --> G["Compass stream"]
+  A --> H["Google Maps / browser fallback"]
 ```
 
-## Project Layout
+## Repository Structure
 
 ```text
 prayer-times-app/
   backend/
     app/
-      api/v1/routes/
-        prayer_times.py
-        geocode.py
-      services/
-        aladhan_client.py
-        geocode_client.py
-      schemas/
-        prayer_times.py
-        geocode.py
-      main.py
+      api/v1/routes/        # FastAPI endpoints
+      schemas/              # Pydantic response models
+      services/             # Upstream clients and geocoding logic
+      main.py               # FastAPI app entrypoint
     requirements.txt
-    run_backend.ps1
 
   frontend/
     lib/
+      core/                 # App config and theme
       src/
-        controllers/
-          prayer_times_controller.dart
-        services/
-          prayer_api_client.dart
-          location_service.dart
-          settings_store.dart
-        ui/
-          prayer_home_page.dart
-          qibla_map_page.dart
-          widgets/qibla_compass_card.dart
-        utils/
-          qibla_utils.dart
-          prayer_time_utils.dart
-    android/app/src/main/AndroidManifest.xml
+        controllers/        # ChangeNotifier controller layer
+        core/               # Tokens, prayer phase logic, constants
+        models/             # App and API data models
+        services/           # API, settings, and location services
+        ui/                 # Screens and reusable widgets
+        utils/              # Prayer and Qibla utilities
     pubspec.yaml
+
+  screenshots/             # README image assets
+  README.md
 ```
 
-## API Endpoints
+## API Overview
 
-Base URL (local): `http://127.0.0.1:8000`
+Base URL in local development: `http://127.0.0.1:8000`
+
+| Endpoint | Method | Purpose |
+| --- | --- | --- |
+| `/health` | `GET` | Simple backend health check |
+| `/api/v1/prayer-times` | `GET` | Returns prayer times for coordinates, method, and school |
+| `/api/v1/geocode` | `GET` | Resolves place text to coordinates |
 
 ### `GET /health`
-
-Returns backend status.
 
 ```bash
 curl http://127.0.0.1:8000/health
 ```
 
 ```json
-{"status":"ok"}
+{
+  "status": "ok"
+}
 ```
 
 ### `GET /api/v1/prayer-times`
 
-Query params:
+Query parameters:
 
-- `lat` (required, float)
-- `lon` (required, float)
-- `method` (optional, default `2`)
-- `school` (optional, default `0`; `0=Shafi`, `1=Hanafi`)
+- `lat` - required latitude
+- `lon` - required longitude
+- `method` - optional AlAdhan calculation method, default `2`
+- `school` - optional school flag, default `0` where `0 = Shafi`, `1 = Hanafi`
+
+Example request:
 
 ```bash
-curl "http://127.0.0.1:8000/api/v1/prayer-times?lat=52.5174&lon=13.3951&method=13&school=1"
+curl "http://127.0.0.1:8000/api/v1/prayer-times?lat=52.5174&lon=13.3951&method=13&school=0"
 ```
+
+Example response:
 
 ```json
 {
-  "date": "11 Feb 2026",
+  "date": "16 Apr 2026",
   "timezone": "Europe/Berlin",
-  "location": {"lat": 52.5173885, "lon": 13.3951309},
+  "location": {
+    "lat": 52.5173885,
+    "lon": 13.3951309,
+    "label": "Berlin, Deutschland",
+    "city": "Berlin",
+    "country": "Germany"
+  },
   "method": 13,
-  "school": 1,
+  "school": 0,
   "times": {
-    "Fajr": "05:35",
-    "Sunrise": "07:24",
-    "Dhuhr": "12:26",
-    "Asr": "15:23",
-    "Maghrib": "17:19",
-    "Isha": "19:01"
+    "Fajr": "04:32",
+    "Sunrise": "06:12",
+    "Dhuhr": "13:04",
+    "Asr": "16:48",
+    "Maghrib": "20:03",
+    "Isha": "21:36"
   }
 }
 ```
 
 ### `GET /api/v1/geocode`
 
-Text lookup endpoint for city/district/address to coordinates.
+Query parameters:
 
-Query params:
+- `q` - required text query, minimum length `2`
 
-- `q` (required, min length `2`)
+Example request:
 
 ```bash
 curl "http://127.0.0.1:8000/api/v1/geocode?q=Berlin"
 ```
 
+Example response:
+
 ```json
 {
   "query": "Berlin",
   "label": "Berlin, Deutschland",
-  "location": {"lat": 52.5173885, "lon": 13.3951309}
+  "location": {
+    "lat": 52.5173885,
+    "lon": 13.3951309
+  }
 }
 ```
 
-## Implementation Notes
+## Configuration and Runtime Behavior
 
-### Qibla
+### API base URL
 
-- Kaaba reference: `21.422487, 39.826206`
-- The app computes bearing, haversine distance, and a geodesic route polyline.
-- The route renderer splits at dateline jumps so long-distance lines stay visually stable.
+The Flutter app accepts `API_BASE_URL` through `--dart-define`.
 
-### Location and Timezone
+If no explicit value is supplied, the current code falls back to:
 
-- Supports live location (GPS/device services) and manual location (saved coordinates + label).
-- Includes a mismatch repair guard:
-  - if a city-like manual label exists (for example `Berlin`)
-  - but coordinates are still fallback defaults
-  - app resolves coordinates through `/api/v1/geocode`
-- This prevents the "Berlin label but America/New_York timezone" inconsistency.
+| Platform | Default base URL |
+| --- | --- |
+| Android emulator | `http://10.0.2.2:8000` |
+| iOS simulator / macOS / web / other local targets | `http://127.0.0.1:8000` |
 
-### External Maps
+### Location behavior
 
-- Tries multiple launch modes (`platformDefault`, `externalApplication`, `inAppBrowserView`).
-- If all fail, app copies the maps URL to clipboard and shows a snackbar fallback.
-- Android manifest includes `queries` for `https` and `geo` schemes (Android 11+ intent visibility).
+- Live mode uses device location with high accuracy.
+- Manual mode stores coordinates and a label locally.
+- The backend attempts reverse geocoding so the UI can show a readable place label.
+- If a manual label looks valid but stored coordinates are still fallback defaults, the app can repair that state through `/api/v1/geocode`.
 
-## Requirements
+### Timezone behavior
+
+- The backend returns timezone metadata from the prayer data provider.
+- The frontend surfaces timezone as part of the trust context strip.
+- A wrong timezone is usually a sign that the active coordinates are wrong.
+
+### Maps fallback behavior
+
+- The app tries multiple launch modes for Google Maps.
+- If no launch succeeds, it copies the route URL to the clipboard and shows a snackbar message.
+
+### Theme behavior
+
+- `Light` keeps a bright, high-contrast version of the same core hierarchy.
+- `Dark` uses the calmer navy/slate palette.
+- `Prayer-based` follows the currently resolved prayer phase when the app recomputes state, such as on app start, refresh, or resume.
+- The app does not aggressively re-theme on every countdown tick.
+
+## Local Development Setup
+
+### Prerequisites
 
 - Flutter SDK compatible with Dart `>=3.2.3 <4.0.0`
 - Python `3.9+`
-- Android emulator or physical device (recommended for location/compass tests)
+- A simulator, emulator, browser, or physical device for frontend testing
 
-## Local Setup
-
-### 1) Backend
+### 1. Backend setup
 
 ```bash
 cd backend
@@ -246,18 +395,15 @@ cd backend
 .\run_backend.ps1
 ```
 
-Health check:
+Useful backend checks:
 
 ```bash
 curl http://127.0.0.1:8000/health
 ```
 
-Open API docs:
+Then open `http://127.0.0.1:8000/docs` in your browser for the interactive API docs.
 
-- `http://127.0.0.1:8000/docs`
-- `http://127.0.0.1:8000/openapi.json`
-
-### 2) Frontend
+### 2. Frontend setup
 
 ```bash
 cd frontend
@@ -267,91 +413,121 @@ flutter pub get
 Run on Android emulator:
 
 ```bash
-flutter run -d emulator-5554 --dart-define=API_BASE_URL=http://10.0.2.2:8000
+flutter run --dart-define=API_BASE_URL=http://10.0.2.2:8000
 ```
 
-Run on iOS simulator:
+Run on iOS simulator or macOS:
 
 ```bash
-flutter run -d ios --dart-define=API_BASE_URL=http://127.0.0.1:8000
+flutter run --dart-define=API_BASE_URL=http://127.0.0.1:8000
 ```
 
-Run on web (Chrome):
+Run on Chrome:
 
 ```bash
 flutter run -d chrome --dart-define=API_BASE_URL=http://127.0.0.1:8000
 ```
 
-## Runtime Config
-
-`API_BASE_URL` is provided via `--dart-define`.
-
-Defaults in app code:
-
-- Android: `http://10.0.2.2:8000`
-- Web/others: `http://127.0.0.1:8000`
-
-## Useful Dev Commands
+### Useful development commands
 
 Frontend:
 
 ```bash
 cd frontend
-flutter test
 flutter analyze
+flutter test
 ```
 
-Backend quick syntax check:
+Backend quick verification:
 
 ```bash
-python3 -m py_compile backend/app/main.py
-python3 -m py_compile backend/app/services/aladhan_client.py
-python3 -m py_compile backend/app/services/geocode_client.py
+python3 -m compileall backend/app
 ```
 
-## Troubleshooting 🛠️
+## Troubleshooting
 
-### Timezone shows `America/New_York` unexpectedly
+### The app shows `Mountain View`, `California`, or `America/Los_Angeles`
 
-Usually means the request was sent with fallback coordinates (`40.7128,-74.0060`).
+This usually means the runtime target is reporting the default emulator or simulator location, not your real location.
 
-Try this:
+- Android Emulator: open `Extended Controls` -> `Location` and send the correct coordinates.
+- iOS Simulator: use `Features` -> `Location` -> `Custom Location...`.
+- Chrome: verify browser location permissions and make sure DevTools sensors are not overriding location.
 
-- Switch to manual mode and set correct coordinates explicitly
-- Keep manual label (`Berlin`) and refresh to trigger geocode repair
-- Verify backend logs show expected `lat/lon`
+### The timezone looks wrong
+
+Timezone mismatches usually trace back to incorrect coordinates.
+
+- Check whether the app is in live or manual mode.
+- Verify the active coordinates in the settings area.
+- If needed, switch to manual mode and enter coordinates explicitly.
+
+### Prayer times look off
+
+The most common causes are the active calculation method or Asr rule.
+
+- Check the selected calculation method.
+- Check whether `Auto by region` is enabled.
+- Verify whether the app is using `Shafi` or `Hanafi`.
 
 ### Google Maps does not open
 
-- Ensure emulator/device has a browser or maps handler
-- Retry from Qibla card or Qibla map action
-- If still blocked, use the copied URL from clipboard fallback
+- Ensure the device has a browser or maps handler available.
+- Retry from the Qibla card or Qibla map page.
+- If launch still fails, use the copied URL from the clipboard fallback.
 
-### Backend unreachable from Android emulator
+### Backend is unreachable from Android emulator
 
 Use `10.0.2.2`, not `localhost`.
 
-### Port `8000` already in use
+### Port `8000` is already in use
 
 ```bash
 lsof -nP -iTCP:8000 -sTCP:LISTEN
 kill <PID>
 ```
 
-### Compass data unavailable
+### Compass data is unavailable
 
-- Emulators often have no reliable compass stream
-- Test on a physical device
-- Move phone in a figure-8 pattern for sensor calibration
+- Emulators typically do not provide a reliable compass stream.
+- Test on a physical device when validating Qibla behavior.
+- Recalibrate the device by moving it in a figure-eight pattern.
 
-## Notes for Production Hardening
+## Production Hardening and Future Improvements
 
-- Restrict CORS origin list
-- Add API rate limiting and caching
-- Add structured logging + metrics
-- Add retry/backoff policy for upstream failures
-- Add integration tests for endpoint contracts
+If this project were pushed toward production maturity, the next practical steps would include:
+
+- tightening CORS instead of allowing all origins
+- adding response caching and upstream rate protection
+- introducing structured logging and metrics
+- adding richer automated integration tests around endpoint contracts
+- improving offline behavior for the last successful timetable
+- hardening notification and reminder flows if local prayer alerts are added
+- expanding localization coverage and product copy consistency
+
+## Roadmap
+
+### In progress
+
+- Improve diagnostic UX for location and timezone mismatches
+- Refine Qibla map readability on small devices
+- Improve fallback behavior when external maps cannot open
+
+### Next up
+
+- Local prayer notifications with per-prayer toggles
+- Country and city presets for faster setup
+- Further localization polish across German and English flows
+
+### Future ideas
+
+- Expand region-aware calculation recommendations
+- Explore nearby mosque discovery concepts
+- Add offline cache for the last successful timetable
+- Investigate widgets, wearables, or companion integrations
+
+Roadmap items are directional and can be reprioritized.
 
 ## License
 
-MIT. See `LICENSE`.
+MIT. See [LICENSE](./LICENSE).

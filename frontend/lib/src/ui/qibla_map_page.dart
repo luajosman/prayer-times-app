@@ -60,9 +60,9 @@ class QiblaMapPage extends StatelessWidget {
             end: Alignment.bottomCenter,
             colors: <Color>[
               AppColors.overlay(
-                resolvedPhase.qiblaAmbient,
+                resolvedPhase.pageTint(palette),
                 palette.background,
-                0.14,
+                palette.isDark ? 0.14 : 0.06,
               ),
               palette.background,
             ],
@@ -109,7 +109,7 @@ class QiblaMapPage extends StatelessWidget {
                         ContextChip(
                           icon: Icons.route_rounded,
                           label: '${distanceKm.toStringAsFixed(0)} km',
-                          accentColor: resolvedPhase.accentSoft,
+                          accentColor: resolvedPhase.emphasisColor(palette),
                           emphasized: true,
                         ),
                       ],

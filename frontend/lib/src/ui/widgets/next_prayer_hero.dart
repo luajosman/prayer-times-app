@@ -29,10 +29,8 @@ class NextPrayerHero extends StatelessWidget {
       decoration: BoxDecoration(
         gradient: phaseStyle.heroGradient(palette),
         borderRadius: BorderRadius.circular(AppRadius.xl),
-        border: Border.all(
-          color: AppColors.overlay(phaseStyle.accent, palette.border, 0.34),
-        ),
-        boxShadow: AppShadows.glow,
+        border: Border.all(color: phaseStyle.heroBorderColor(palette)),
+        boxShadow: AppShadows.glow(palette),
       ),
       child: Stack(
         children: <Widget>[
@@ -40,7 +38,7 @@ class NextPrayerHero extends StatelessWidget {
             top: -18,
             right: -10,
             child: _HeroOrb(
-              color: phaseStyle.ambient,
+              color: phaseStyle.heroOrbColor(palette, secondary: false),
               size: 138,
             ),
           ),
@@ -48,7 +46,7 @@ class NextPrayerHero extends StatelessWidget {
             bottom: -24,
             left: -14,
             child: _HeroOrb(
-              color: phaseStyle.ambientSoft,
+              color: phaseStyle.heroOrbColor(palette, secondary: true),
               size: 118,
             ),
           ),
@@ -102,13 +100,14 @@ class _HeroContent extends StatelessWidget {
             ),
             decoration: BoxDecoration(
               color: AppColors.overlay(
-                AppColors.gold,
-                palette.surfaceStrong,
-                0.18,
+                palette.gold,
+                palette.isDark ? palette.surfaceStrong : palette.goldTint,
+                palette.isDark ? 0.18 : 0.12,
               ),
               borderRadius: BorderRadius.circular(AppRadius.full),
               border: Border.all(
-                color: palette.goldSoft.withValues(alpha: 0.4),
+                color: palette.gold
+                    .withValues(alpha: palette.isDark ? 0.24 : 0.18),
               ),
             ),
             child: Text(
@@ -151,7 +150,7 @@ class _HeroContent extends StatelessWidget {
               if (countdownLabel != null)
                 _CountdownBadge(
                   label: countdownLabel!,
-                  accent: phaseStyle.countdownAccent,
+                  accent: phaseStyle.countdownColor(palette),
                 ),
             ],
           ),

@@ -36,6 +36,17 @@ class PrayerPhaseStyle {
   final Color qiblaAmbient;
 
   LinearGradient heroGradient(AppPalette palette) {
+    if (palette.isLight) {
+      return LinearGradient(
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+        colors: <Color>[
+          AppColors.overlay(accent, palette.surfaceRaised, 0.08),
+          AppColors.overlay(ambientSoft, palette.surface, 0.12),
+        ],
+      );
+    }
+
     return LinearGradient(
       begin: Alignment.topLeft,
       end: Alignment.bottomRight,
@@ -44,6 +55,65 @@ class PrayerPhaseStyle {
         AppColors.overlay(tint, palette.surfaceRaised, 0.68),
       ],
     );
+  }
+
+  Color pageTint(AppPalette palette) {
+    return palette.isDark ? tint : accent;
+  }
+
+  Color emphasisColor(AppPalette palette) {
+    return palette.isDark ? accentSoft : accent;
+  }
+
+  Color countdownColor(AppPalette palette) {
+    return palette.isDark ? countdownAccent : accent;
+  }
+
+  Color sectionColor(AppPalette palette) {
+    return palette.isDark ? sectionAccent : accent;
+  }
+
+  Color heroBorderColor(AppPalette palette) {
+    return palette.isDark
+        ? AppColors.overlay(accent, palette.border, 0.34)
+        : accent.withValues(alpha: 0.18);
+  }
+
+  Color heroOrbColor(AppPalette palette, {required bool secondary}) {
+    final Color source = secondary ? ambientSoft : ambient;
+    return palette.isDark
+        ? source
+        : AppColors.overlay(source, palette.surfaceRaised, 0.20);
+  }
+
+  Color nextPrayerBackground(AppPalette palette) {
+    return palette.isDark
+        ? AppColors.overlay(tint, palette.surfaceRaised, 0.72)
+        : AppColors.overlay(accent, palette.surfaceRaised, 0.08);
+  }
+
+  Color nextPrayerBorder(AppPalette palette) {
+    return palette.isDark
+        ? accent.withValues(alpha: 0.34)
+        : accent.withValues(alpha: 0.18);
+  }
+
+  Color nextPrayerIconTile(AppPalette palette) {
+    return palette.isDark
+        ? AppColors.overlay(accent, palette.surfaceStrong, 0.18)
+        : AppColors.overlay(accent, palette.surfaceStrong, 0.12);
+  }
+
+  Color qiblaOrbColor(AppPalette palette) {
+    return palette.isDark
+        ? AppColors.overlay(qiblaAmbient, palette.gold, 0.18)
+        : AppColors.overlay(palette.gold, palette.surfaceRaised, 0.20);
+  }
+
+  Color qiblaDialTint(AppPalette palette) {
+    return palette.isDark
+        ? AppColors.overlay(qiblaAmbient, palette.surfaceStrong, 0.24)
+        : AppColors.overlay(qiblaAmbient, palette.surfaceStrong, 0.10);
   }
 }
 

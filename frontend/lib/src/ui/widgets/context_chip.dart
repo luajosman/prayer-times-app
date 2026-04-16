@@ -21,11 +21,16 @@ class ContextChip extends StatelessWidget {
   Widget build(BuildContext context) {
     final AppPalette palette = AppPalette.of(context);
     final Color background = emphasized
-        ? AppColors.overlay(accentColor, palette.surfaceRaised, 0.12)
-        : palette.surfaceRaised;
-    final Color borderColor =
-        emphasized ? accentColor.withValues(alpha: 0.28) : palette.border;
-    final Color iconColor = emphasized ? accentColor : palette.primarySoft;
+        ? AppColors.overlay(
+            accentColor,
+            palette.isDark ? palette.surfaceRaised : palette.surfaceStrong,
+            palette.isDark ? 0.12 : 0.10,
+          )
+        : (palette.isDark ? palette.surfaceRaised : palette.surfaceStrong);
+    final Color borderColor = emphasized
+        ? accentColor.withValues(alpha: palette.isDark ? 0.28 : 0.18)
+        : (palette.isDark ? palette.border : palette.borderSubtle);
+    final Color iconColor = emphasized ? accentColor : palette.primary;
     final Color textColor =
         emphasized ? palette.textPrimary : palette.textSecondary;
 

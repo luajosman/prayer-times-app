@@ -36,6 +36,7 @@ abstract final class AppColors {
 @immutable
 class AppPalette extends ThemeExtension<AppPalette> {
   const AppPalette({
+    required this.brightness,
     required this.background,
     required this.surface,
     required this.surfaceRaised,
@@ -59,6 +60,7 @@ class AppPalette extends ThemeExtension<AppPalette> {
     required this.black,
   });
 
+  final Brightness brightness;
   final Color background;
   final Color surface;
   final Color surfaceRaised;
@@ -81,7 +83,11 @@ class AppPalette extends ThemeExtension<AppPalette> {
   final Color white;
   final Color black;
 
+  bool get isDark => brightness == Brightness.dark;
+  bool get isLight => brightness == Brightness.light;
+
   static const AppPalette dark = AppPalette(
+    brightness: Brightness.dark,
     background: AppColors.background,
     surface: AppColors.surface,
     surfaceRaised: AppColors.surfaceRaised,
@@ -106,21 +112,22 @@ class AppPalette extends ThemeExtension<AppPalette> {
   );
 
   static const AppPalette light = AppPalette(
-    background: Color(0xFFF2F6FA),
-    surface: Color(0xFFF8FBFF),
+    brightness: Brightness.light,
+    background: Color(0xFFF3F7FB),
+    surface: Color(0xFFF7FAFD),
     surfaceRaised: Color(0xFFFFFFFF),
-    surfaceStrong: Color(0xFFEAF0F7),
-    border: Color(0xFFD5E0EC),
-    borderSubtle: Color(0xFFE5EBF2),
+    surfaceStrong: Color(0xFFEDF3F9),
+    border: Color(0xFFD1DDE9),
+    borderSubtle: Color(0xFFE3EAF2),
     textPrimary: Color(0xFF10233B),
-    textSecondary: Color(0xFF5D7088),
-    textTertiary: Color(0xFF8090A6),
+    textSecondary: Color(0xFF5B6E84),
+    textTertiary: Color(0xFF7F91A6),
     primary: AppColors.primary,
-    primarySoft: Color(0xFF4FA38C),
-    primaryTint: Color(0xFFDCEFEA),
-    gold: Color(0xFFB98B41),
-    goldSoft: AppColors.goldSoft,
-    goldTint: Color(0xFFF4E8D4),
+    primarySoft: Color(0xFF3F9983),
+    primaryTint: Color(0xFFE1F0EB),
+    gold: Color(0xFFB28339),
+    goldSoft: Color(0xFF8C6A2F),
+    goldTint: Color(0xFFF5EBD9),
     success: Color(0xFF3A925E),
     warning: Color(0xFFC5842E),
     error: Color(0xFFC45353),
@@ -135,6 +142,7 @@ class AppPalette extends ThemeExtension<AppPalette> {
 
   @override
   AppPalette copyWith({
+    Brightness? brightness,
     Color? background,
     Color? surface,
     Color? surfaceRaised,
@@ -158,6 +166,7 @@ class AppPalette extends ThemeExtension<AppPalette> {
     Color? black,
   }) {
     return AppPalette(
+      brightness: brightness ?? this.brightness,
       background: background ?? this.background,
       surface: surface ?? this.surface,
       surfaceRaised: surfaceRaised ?? this.surfaceRaised,
@@ -189,6 +198,7 @@ class AppPalette extends ThemeExtension<AppPalette> {
     }
 
     return AppPalette(
+      brightness: t < 0.5 ? brightness : other.brightness,
       background: Color.lerp(background, other.background, t) ?? background,
       surface: Color.lerp(surface, other.surface, t) ?? surface,
       surfaceRaised:
@@ -247,19 +257,48 @@ abstract final class AppMotion {
 }
 
 abstract final class AppShadows {
-  static const List<BoxShadow> panel = <BoxShadow>[
-    BoxShadow(
-      color: Color(0x22000000),
-      blurRadius: 24,
-      offset: Offset(0, 10),
-    ),
-  ];
+  static List<BoxShadow> panel(AppPalette palette) {
+    if (palette.isDark) {
+      return const <BoxShadow>[
+        BoxShadow(
+          color: Color(0x22000000),
+          blurRadius: 24,
+          offset: Offset(0, 10),
+        ),
+      ];
+    }
 
-  static const List<BoxShadow> glow = <BoxShadow>[
-    BoxShadow(
-      color: Color(0x14000000),
-      blurRadius: 28,
-      offset: Offset(0, 12),
-    ),
-  ];
+    return <BoxShadow>[
+      const BoxShadow(
+        color: Color(0x140C223E),
+        blurRadius: 22,
+        offset: Offset(0, 10),
+      ),
+      BoxShadow(
+        color: palette.white.withValues(alpha: 0.72),
+        blurRadius: 0,
+        offset: const Offset(0, 1),
+      ),
+    ];
+  }
+
+  static List<BoxShadow> glow(AppPalette palette) {
+    if (palette.isDark) {
+      return const <BoxShadow>[
+        BoxShadow(
+          color: Color(0x14000000),
+          blurRadius: 28,
+          offset: Offset(0, 12),
+        ),
+      ];
+    }
+
+    return <BoxShadow>[
+      const BoxShadow(
+        color: Color(0x120E2946),
+        blurRadius: 18,
+        offset: Offset(0, 8),
+      ),
+    ];
+  }
 }

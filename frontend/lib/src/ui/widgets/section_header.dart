@@ -27,8 +27,10 @@ class SectionHeader extends StatelessWidget {
             shape: BoxShape.circle,
             boxShadow: <BoxShadow>[
               BoxShadow(
-                color: accentColor.withValues(alpha: 0.24),
-                blurRadius: 10,
+                color: accentColor.withValues(
+                  alpha: palette.isDark ? 0.24 : 0.14,
+                ),
+                blurRadius: palette.isDark ? 10 : 6,
               ),
             ],
           ),

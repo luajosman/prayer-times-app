@@ -37,7 +37,7 @@ class QiblaCompassCard extends StatelessWidget {
         color: palette.surfaceRaised,
         borderRadius: BorderRadius.circular(AppRadius.xl),
         border: Border.all(color: palette.border),
-        boxShadow: AppShadows.panel,
+        boxShadow: AppShadows.panel(palette),
       ),
       child: Stack(
         children: <Widget>[
@@ -45,11 +45,7 @@ class QiblaCompassCard extends StatelessWidget {
             top: -18,
             right: -8,
             child: _AmbientOrb(
-              color: AppColors.overlay(
-                phaseStyle.qiblaAmbient,
-                palette.gold,
-                0.18,
-              ),
+              color: phaseStyle.qiblaOrbColor(palette),
               size: 118,
             ),
           ),
@@ -168,6 +164,7 @@ class _CompassPanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final AppPalette palette = AppPalette.of(context);
     final Stream<CompassEvent>? stream = _safeStream();
     if (stream == null) {
       return const _CompassUnavailable(
@@ -201,7 +198,7 @@ class _CompassPanel extends StatelessWidget {
             ? AppColors.success
             : close
                 ? AppColors.warning
-                : phaseStyle.accentSoft;
+                : phaseStyle.emphasisColor(palette);
 
         final String statusLabel = aligned
             ? 'Ausrichtung gut'
@@ -270,11 +267,7 @@ class _CompassDial extends StatelessWidget {
             height: 226,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: AppColors.overlay(
-                phaseStyle.qiblaAmbient,
-                palette.surfaceStrong,
-                0.24,
-              ),
+              color: phaseStyle.qiblaDialTint(palette),
               border: Border.all(color: palette.border),
             ),
           ),

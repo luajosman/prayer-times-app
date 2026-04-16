@@ -21,6 +21,8 @@ class TrustContextStrip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final AppPalette palette = AppPalette.of(context);
+
     return Wrap(
       spacing: AppSpacing.sm,
       runSpacing: AppSpacing.sm,
@@ -45,7 +47,7 @@ class TrustContextStrip extends StatelessWidget {
           icon: Icons.school_outlined,
           label: schoolLabel,
           compact: true,
-          accentColor: phaseStyle.accentSoft,
+          accentColor: phaseStyle.emphasisColor(palette),
         ),
       ],
     );

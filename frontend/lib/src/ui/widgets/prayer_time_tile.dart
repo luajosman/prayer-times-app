@@ -33,7 +33,7 @@ class PrayerTimeTile extends StatelessWidget {
         backgroundColor: AppColors.overlay(
           const Color(0xFFB68C58),
           palette.surface,
-          0.08,
+          palette.isDark ? 0.08 : 0.06,
         ),
         borderColor: palette.borderSubtle,
         titleColor: palette.textSecondary,
@@ -54,21 +54,13 @@ class PrayerTimeTile extends StatelessWidget {
         title: title,
         time: time,
         subtitle: 'Nächstes Gebet',
-        backgroundColor: AppColors.overlay(
-          phaseStyle.tint,
-          palette.surfaceRaised,
-          0.72,
-        ),
-        borderColor: phaseStyle.accent.withValues(alpha: 0.34),
+        backgroundColor: phaseStyle.nextPrayerBackground(palette),
+        borderColor: phaseStyle.nextPrayerBorder(palette),
         titleColor: palette.textPrimary,
-        subtitleColor: phaseStyle.accentSoft,
-        timeColor: phaseStyle.countdownAccent,
-        iconTileColor: AppColors.overlay(
-          phaseStyle.accent,
-          palette.surfaceStrong,
-          0.18,
-        ),
-        iconColor: phaseStyle.accentSoft,
+        subtitleColor: phaseStyle.emphasisColor(palette),
+        timeColor: phaseStyle.countdownColor(palette),
+        iconTileColor: phaseStyle.nextPrayerIconTile(palette),
+        iconColor: phaseStyle.emphasisColor(palette),
       );
     }
 
